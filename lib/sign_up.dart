@@ -2,25 +2,63 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'user_class.dart';
+import 'dart:async';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class signUp extends StatefulWidget {
   _signUpState createState() => _signUpState();
 }
 
 class _signUpState extends State<signUp> {
-  User u = new User();
-  var url = "129.113.47.232:4567/register_users";
+  var _fullName = TextEditingController();
+  var _userName = TextEditingController();
+  var _password = TextEditingController();
+  var _conPass = TextEditingController();
+  var url = "localhost:4567/register_users";
+  int _rValue1 = -1;
+
+  void _handleValue1(int value)
+  {
+    setState((){
+      _rValue1 = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    var radio = new Column(
+      children: <Widget>[
+        Text('Helper:', style: TextStyle(fontSize: 17),),
+        new Center(
+          child: new Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text('Yes'),
+              Radio(
+                value: 1,
+                groupValue: _rValue1,
+                onChanged: _handleValue1,
+              ),
+              Text('No'),
+              Radio(
+                value: 0,
+                groupValue: _rValue1,
+                onChanged: _handleValue1,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
     var signUpCredentials = new Column(
       children: [
+        radio,
         Container(
           padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
           width: 160,
           height: 50,
           child: TextFormField(
-            controller: u.fullName,
+            controller: _fullName,
             autofocus: false,
             obscureText: false,
             decoration: InputDecoration(
@@ -35,7 +73,7 @@ class _signUpState extends State<signUp> {
           width: 160,
           height: 50,
           child: TextFormField(
-            controller: u.userName,
+            controller: _userName,
             autofocus: false,
             obscureText: false,
             decoration: InputDecoration(
@@ -50,7 +88,7 @@ class _signUpState extends State<signUp> {
           width: 160,
           height: 50,
           child: TextFormField(
-            controller: u.password,
+            controller: _password,
             autofocus: false,
             obscureText: true,
             decoration: InputDecoration(
@@ -65,7 +103,7 @@ class _signUpState extends State<signUp> {
           width: 160,
           height: 50,
           child: TextFormField(
-            controller: u.conPass,
+            controller: _conPass,
             autofocus: false,
             obscureText: true,
             decoration: InputDecoration(
@@ -87,9 +125,29 @@ class _signUpState extends State<signUp> {
             style: TextStyle(color: Colors.blue, fontSize: 20),
           ),
           onPressed: () {
-            //check if information is filled
-            //Add information to database
-            Navigator.pop(context); //go back to log in screen
+            if (_userName.text.isNotEmpty && _fullName.text.isNotEmpty && _password.text.isNotEmpty && _conPass.text.isNotEmpty && _rValue1 >= 0)
+            {
+              if (_conPass.text == _password.text)
+              {
+                User u = new User();
+                u.fullName = _fullName.text;
+                u.userName = _userName.text;
+                u.password = _password.text;
+                u.conPass = _conPass.text;
+                u.helper = _rValue1;
+                http.post(url, body: {'name': u.fullName, 'user': u.userName,'helper': u.helper,
+                                          'password': u.password, 'c_password': u.conPass});
+                Navigator.pop(context);
+              }
+              else
+              {
+                Fluttertoast.showToast(msg: 'Passwords dont match',toastLength: Toast.LENGTH_SHORT);
+              }
+            }
+            else
+            {
+              Fluttertoast.showToast(msg: 'Field(s) empty',toastLength: Toast.LENGTH_SHORT);
+            }
           },
         )
       ]
@@ -97,6 +155,7 @@ class _signUpState extends State<signUp> {
 
 
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         title: Text(''),
       ),
