@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'settings.dart';
 
 class loggedAcc extends StatefulWidget {
   _loggedAccState createState() => _loggedAccState();
@@ -40,6 +41,15 @@ class _loggedAccState extends State<loggedAcc> {
                 Navigator.pop(context);
               },
             ),
+            ListTile(
+              title: Text('Preferences'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AccSettings()),
+                );
+              },
+            )
           ],
         ),
       ),
