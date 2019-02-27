@@ -1,8 +1,5 @@
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'dart:convert' as convert;
-import 'user_class.dart';
-import 'dart:async';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class signUp extends StatefulWidget {
@@ -14,7 +11,6 @@ class _signUpState extends State<signUp> {
   var _userName = TextEditingController();
   var _password = TextEditingController();
   var _conPass = TextEditingController();
-  var url = "localhost:4567/register_users";
   int _rValue1 = -1;
 
   void _handleValue1(int value)
@@ -125,29 +121,29 @@ class _signUpState extends State<signUp> {
             style: TextStyle(color: Colors.blue, fontSize: 20),
           ),
           onPressed: () {
-            if (_userName.text.isNotEmpty && _fullName.text.isNotEmpty && _password.text.isNotEmpty && _conPass.text.isNotEmpty && _rValue1 >= 0)
-            {
-              if (_conPass.text == _password.text)
-              {
-                User u = new User();
-                u.fullName = _fullName.text;
-                u.userName = _userName.text;
-                u.password = _password.text;
-                u.conPass = _conPass.text;
-                u.helper = _rValue1;
-                http.post(url, body: {'name': u.fullName, 'user': u.userName,'helper': u.helper,
-                                          'password': u.password, 'c_password': u.conPass});
-                Navigator.pop(context);
+            Map<String, String> body = {
+              'name': _fullName.text,
+              'user': _userName.text,
+              'helper': _rValue1.toString(),
+              'password': _password.text,
+              'c_password': _conPass.text,
+            };
+            var url = "https://vip-serv.herokuapp.com//register_user"; //change ip and port as needed
+            http.post(url, body: body)
+              .then((response) {
+                if (response.statusCode == 200)
+                {
+                  Fluttertoast.showToast(msg: '${response.body}',toastLength: Toast.LENGTH_SHORT);
+                  print("Response status: ${response.statusCode}");
+                  print("Response body: ${response.body}");
+                }
+                else
+                {
+                  Fluttertoast.showToast(msg: 'Connection Failed',toastLength: Toast.LENGTH_SHORT);
+                }
               }
-              else
-              {
-                Fluttertoast.showToast(msg: 'Passwords dont match',toastLength: Toast.LENGTH_SHORT);
-              }
-            }
-            else
-            {
-              Fluttertoast.showToast(msg: 'Field(s) empty',toastLength: Toast.LENGTH_SHORT);
-            }
+            );
+            Navigator.pop(context);
           },
         )
       ]

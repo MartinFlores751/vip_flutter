@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 import 'sign_up.dart';
 import 'logged_acc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 void main() => runApp(MyApp());
 
@@ -100,9 +101,31 @@ class _MyHomePageState extends State<MyHomePage> {
       iconSize: 55,
       onPressed: () {
         //check to see if credentials exist
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => loggedAcc()),
+        Map<String, String> body = {
+              'user': _username.text,
+              'password': _password.text,
+            };
+        var url = "https://vip-serv.herokuapp.com/authenticate_user"; //change ip and port as needed
+        http.post(url, body: body)
+          .then((response) {
+            if (response.statusCode == 200)
+            {
+              Fluttertoast.showToast(msg: '${response.body}',toastLength: Toast.LENGTH_SHORT);
+              print("Response status: ${response.statusCode}");
+              print("Response body: ${response.body}");
+              if (response.body == "Log in Successful") //might have to change this
+              {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => loggedAcc()),
+                );
+              }
+            }
+            else
+            {
+              Fluttertoast.showToast(msg: 'Connection Failed',toastLength: Toast.LENGTH_SHORT);
+            }
+          }
         );
       }
     );
