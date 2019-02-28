@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
 
 class signUp extends StatefulWidget {
   _signUpState createState() => _signUpState();
@@ -85,6 +86,9 @@ class _signUpState extends State<signUp> {
           width: 160,
           height: 50,
           child: TextFormField(
+            inputFormatters: [
+              new WhitelistingTextInputFormatter(new RegExp("[a-zA-Z ]")),
+            ],
             controller: _fullName,
             autofocus: false,
             obscureText: false,
@@ -100,6 +104,9 @@ class _signUpState extends State<signUp> {
           width: 160,
           height: 50,
           child: TextFormField(
+            inputFormatters: [
+              new WhitelistingTextInputFormatter(new RegExp("[a-zA-Z0-9]")),
+            ],
             controller: _userName,
             autofocus: false,
             obscureText: false,
@@ -115,6 +122,9 @@ class _signUpState extends State<signUp> {
           width: 160,
           height: 50,
           child: TextFormField(
+            inputFormatters: [
+              new BlacklistingTextInputFormatter(new RegExp("[ ]")),
+            ],
             controller: _password,
             autofocus: false,
             obscureText: true,
@@ -130,6 +140,9 @@ class _signUpState extends State<signUp> {
           width: 160,
           height: 50,
           child: TextFormField(
+            inputFormatters: [
+              new BlacklistingTextInputFormatter(new RegExp("[ ]")),
+            ],
             controller: _conPass,
             autofocus: false,
             obscureText: true,

@@ -5,6 +5,7 @@
  */
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -98,6 +99,9 @@ class _MyHomePageState extends State<MyHomePage> {
           width: 160,
           height: 50,
           child: TextFormField(
+            inputFormatters: [
+              new WhitelistingTextInputFormatter(new RegExp("[a-zA-Z0-9]")),
+            ],
             controller: _username,
             autofocus: false,
             obscureText: false,
@@ -113,6 +117,9 @@ class _MyHomePageState extends State<MyHomePage> {
           width: 160,
           height: 50,
           child: TextFormField(
+            inputFormatters: [
+              new BlacklistingTextInputFormatter(new RegExp("[ ]")),
+            ],
             controller: _password,
             autofocus: false,
             obscureText: true,
