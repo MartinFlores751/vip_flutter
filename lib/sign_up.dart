@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:async';
 
 class signUp extends StatefulWidget {
   _signUpState createState() => _signUpState();
@@ -18,6 +19,36 @@ class _signUpState extends State<signUp> {
     setState((){
       _rValue1 = value;
     });
+  }
+
+  Future<dynamic> connect() async{
+    if (_fullName.text.length == 0 || _userName.text.length == 0 || _rValue1 == -1 || _password.text.length == 0 || _conPass.text.length == 0)
+    {
+      return null;
+    }
+    Map<String, String> body = {
+      'name': _fullName.text,
+      'user': _userName.text,
+      'helper': _rValue1.toString(),
+      'password': _password.text,
+      'c_password': _conPass.text,
+    };
+    var url = "https://vip-serv.herokuapp.com/api/register_user";
+    var response = await http.post(url, body: body);
+    return response;
+  }
+
+  void signup() async{
+    var response = await connect();
+    if (response == null)
+    {
+      Fluttertoast.showToast(msg: 'Field(s) Empty',toastLength: Toast.LENGTH_SHORT);
+      return;
+    }
+    Fluttertoast.showToast(msg: '${response.body}',toastLength: Toast.LENGTH_SHORT);
+    if (response.body == "Account Created!"){
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -121,29 +152,7 @@ class _signUpState extends State<signUp> {
             style: TextStyle(color: Colors.blue, fontSize: 20),
           ),
           onPressed: () {
-            Map<String, String> body = {
-              'name': _fullName.text,
-              'user': _userName.text,
-              'helper': _rValue1.toString(),
-              'password': _password.text,
-              'c_password': _conPass.text,
-            };
-            var url = "https://vip-serv.herokuapp.com//register_user"; //change ip and port as needed
-            http.post(url, body: body)
-              .then((response) {
-                if (response.statusCode == 200)
-                {
-                  Fluttertoast.showToast(msg: '${response.body}',toastLength: Toast.LENGTH_SHORT);
-                  print("Response status: ${response.statusCode}");
-                  print("Response body: ${response.body}");
-                }
-                else
-                {
-                  Fluttertoast.showToast(msg: 'Connection Failed',toastLength: Toast.LENGTH_SHORT);
-                }
-              }
-            );
-            Navigator.pop(context);
+            signup();
           },
         )
       ]

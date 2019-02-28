@@ -7,7 +7,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert' as convert;
+import 'dart:async';
 import 'sign_up.dart';
 import 'logged_acc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -59,6 +59,37 @@ class _MyHomePageState extends State<MyHomePage> {
   var _username = TextEditingController();
   var _password = TextEditingController();
 
+  Future<dynamic> connect() async{
+    if (_username.text.length == 0 || _password.text.length == 0)
+    {
+      return null;
+    }
+    Map<String, String> body = {
+      'user': _username.text,
+      'password': _password.text,
+    };
+    var url = "https://vip-serv.herokuapp.com/api/authenticate_user";
+    var response = await http.post(url, body: body);
+    return response;
+  }
+
+  void login() async{
+    var response = await connect();
+    if (response == null)
+    {
+      Fluttertoast.showToast(msg: 'Field(s) Empty',toastLength: Toast.LENGTH_SHORT);
+      return;
+    }
+    Fluttertoast.showToast(msg: '${response.body}',toastLength: Toast.LENGTH_SHORT);
+    if (response.body == "Log in Successful")
+    {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => loggedAcc()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var loginCredentials = new Column(children: [
@@ -101,32 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
       iconSize: 55,
       onPressed: () {
         //check to see if credentials exist
-        Map<String, String> body = {
-              'user': _username.text,
-              'password': _password.text,
-            };
-        var url = "https://vip-serv.herokuapp.com/authenticate_user"; //change ip and port as needed
-        http.post(url, body: body)
-          .then((response) {
-            if (response.statusCode == 200)
-            {
-              Fluttertoast.showToast(msg: '${response.body}',toastLength: Toast.LENGTH_SHORT);
-              print("Response status: ${response.statusCode}");
-              print("Response body: ${response.body}");
-              if (response.body == "Log in Successful") //might have to change this
-              {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => loggedAcc()),
-                );
-              }
-            }
-            else
-            {
-              Fluttertoast.showToast(msg: 'Connection Failed',toastLength: Toast.LENGTH_SHORT);
-            }
-          }
-        );
+        login();
       }
     );
 
