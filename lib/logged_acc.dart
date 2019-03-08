@@ -39,14 +39,19 @@ class UserDashboard extends StatelessWidget {
 }
 
 class loggedAcc extends StatefulWidget {
-  _loggedAccState createState() => _loggedAccState();
+  String token;
+  loggedAcc(this.token);
+  _loggedAccState createState() => _loggedAccState(this.token);
 }
 
 class _loggedAccState extends State<loggedAcc> {
+  String token; //has token retreived from server
   int _selectedIndex = 0;
   final _widgetOptions = [
     Text('Index 0: Helpers'),
     Text('Index 1: Find New Helpers')];
+
+  _loggedAccState(this.token);
 
   @override
   Widget build(BuildContext context) {
