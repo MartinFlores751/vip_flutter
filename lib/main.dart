@@ -11,8 +11,10 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'sign_up.dart';
 import 'logged_acc.dart';
+import 'logged_accVIP.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_udid/flutter_udid.dart';
+import 'dart:convert';
 
 void main() => runApp(MyApp());
 
@@ -20,6 +22,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -41,10 +44,11 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   var _username = TextEditingController();
   var _password = TextEditingController();
-  String token; //will hold Token that is retrieved from the server
+  String udid;
+  String token;
 
   Future<dynamic> connect() async{
-    String udid = await FlutterUdid.consistentUdid;
+    udid = await FlutterUdid.consistentUdid;
     Map<String, String> body = {
       'user': _username.text,
       'password': _password.text,
@@ -52,7 +56,17 @@ class _MyHomePageState extends State<MyHomePage> {
     };
     var url = "https://vip-serv.herokuapp.com/api/authenticate_user";
     var response = await http.post(url, body: body);
-    return response;
+    print("${response.body}");
+    return jsonDecode(response.body);
+  }
+  Future<dynamic> getHelpers() async{
+    print("IN");
+    print("$token  $udid");
+    var url = "https://vip-serv.herokuapp.com/api/get_helpers?token=$token&UUID=$udid";
+    var response = await http.get(url);
+    print("OUT");
+    print("${response.body}");
+    return jsonDecode(response.body);
   }
 
   void login() async{
@@ -62,21 +76,40 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
     var response = await connect();
-    if (response.body != "Account does not Exist" && response.body != "Incorrect Password"){
-      token = response.body;
-      Fluttertoast.showToast(msg: 'Login Successful',toastLength: Toast.LENGTH_SHORT);
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => loggedAcc(token)),
-      );
+    if (response["success"]){
+      bool helper = response["isHelper"];
+      token = response["token"];
+      var vipresponse = await getHelpers();
+      if (vipresponse["success"]){
+        List<dynamic> allhelpers = vipresponse["users"];
+        Fluttertoast.showToast(msg: 'Login Successful',toastLength: Toast.LENGTH_SHORT);
+        if (helper == false){
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => loggedAccVIP(token, allhelpers)),
+          );
+        }
+        else
+        {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => loggedAcc(token)), //replace (token) with (token, allvip)
+          );
+        }
+      }
+      else {
+        token = "";
+      }
     }
     else{
-      Fluttertoast.showToast(msg: '${response.body}',toastLength: Toast.LENGTH_SHORT);
+      Fluttertoast.showToast(msg: '${response["error"]}',toastLength: Toast.LENGTH_SHORT);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    FocusNode textSecondFocusNode = new FocusNode();
+
     var loginCredentials = new Column(children: [
         Container(
           padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
@@ -86,9 +119,13 @@ class _MyHomePageState extends State<MyHomePage> {
             inputFormatters: [
               new WhitelistingTextInputFormatter(new RegExp("[a-zA-Z0-9]")),
             ],
+            onFieldSubmitted: (String value) {
+              FocusScope.of(context).requestFocus(textSecondFocusNode);
+            },
             controller: _username,
             autofocus: false,
             obscureText: false,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
               //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -104,6 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
             inputFormatters: [
               new BlacklistingTextInputFormatter(new RegExp("[ ]")),
             ],
+            focusNode: textSecondFocusNode,
             controller: _password,
             autofocus: false,
             obscureText: true,
@@ -122,7 +160,6 @@ class _MyHomePageState extends State<MyHomePage> {
       color: Colors.blue,
       iconSize: 55,
       onPressed: () {
-        //check to see if credentials exist
         login();
       }
     );
@@ -148,6 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         title: Center(child: Text(widget.title)),
       ),

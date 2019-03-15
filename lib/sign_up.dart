@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:flutter_udid/flutter_udid.dart';
+import 'dart:convert';
 
 class signUp extends StatefulWidget {
   _signUpState createState() => _signUpState();
@@ -23,6 +25,7 @@ class _signUpState extends State<signUp> {
   }
 
   Future<dynamic> connect() async{
+    String udid = await FlutterUdid.consistentUdid;
     if (_fullName.text.length == 0 || _userName.text.length == 0 || _rValue1 == -1 || _password.text.length == 0 || _conPass.text.length == 0)
     {
       return null;
@@ -33,10 +36,12 @@ class _signUpState extends State<signUp> {
       'helper': _rValue1.toString(),
       'password': _password.text,
       'c_password': _conPass.text,
+      'UUID': udid,
     };
     var url = "https://vip-serv.herokuapp.com/api/register_user";
     var response = await http.post(url, body: body);
-    return response;
+    print("${response.body}");
+    return jsonDecode(response.body);
   }
 
   void signup() async{
@@ -46,9 +51,14 @@ class _signUpState extends State<signUp> {
       Fluttertoast.showToast(msg: 'Field(s) Empty',toastLength: Toast.LENGTH_SHORT);
       return;
     }
-    Fluttertoast.showToast(msg: '${response.body}',toastLength: Toast.LENGTH_SHORT);
-    if (response.body == "Account Created!"){
+    else if(response["success"])
+    {
+      Fluttertoast.showToast(msg: 'Account Created!',toastLength: Toast.LENGTH_SHORT);
       Navigator.pop(context);
+    }
+    else
+    {
+      Fluttertoast.showToast(msg: '${response["error"]}',toastLength: Toast.LENGTH_SHORT);
     }
   }
 
