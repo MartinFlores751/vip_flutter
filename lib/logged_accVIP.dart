@@ -5,32 +5,55 @@ class VipDashboard extends StatelessWidget {
   List<dynamic> allhelpers;
   VipDashboard(this.allhelpers);
 
-  _buildList(int i)
+  _buildColor(int i)
+  {
+    if (i == 0)
+    {
+      return Colors.greenAccent[100];
+    }
+    else if (i == 1)
+    {
+      return Colors.yellowAccent[100];
+    }
+    else
+    {
+      return Colors.grey[300];
+    }
+  }
+  _buildList(int i, BuildContext context)
   {
     var con = Container(
+      height: 180,
       child: Column(
         children: <Widget>[
+          Text("${allhelpers[i]}", style: TextStyle(color: Colors.black, fontSize: 40.0, fontWeight: FontWeight.bold)),
           Divider(color: Colors.black,),
           Text("Status: Available", style: TextStyle(fontSize: 20.0)),
-          Row(children: <Widget>[
-              IconButton(iconSize: 50, color: Colors.blue, icon: Icon(Icons.person_add), onPressed: (){},),
-              IconButton(iconSize: 50, color: Colors.blue, icon: Icon(Icons.videocam), onPressed: (){},),
-              IconButton(iconSize: 50, color: Colors.red, icon: Icon(Icons.remove_circle), onPressed: (){},),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              IconButton(iconSize: 75, color: Colors.purple, icon: Icon(Icons.person_add), onPressed: (){},),
+              IconButton(iconSize: 75, color: Colors.blue, icon: Icon(Icons.videocam), onPressed: (){},),
+              IconButton(iconSize: 75, color: Colors.red, icon: Icon(Icons.remove_circle), onPressed: (){},),
             ],
           ),
         ],
       )
     );
     return Container(
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1.0, color: Color(0xFFFF000000)),)),
+      foregroundDecoration: true ? null : BoxDecoration(
+        color: Colors.grey,
+        backgroundBlendMode: BlendMode.saturation,
+      ),
+      height: MediaQuery.of(context).size.height/2.5,
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1.0, color: Color(0xFFFF000000)),), color: _buildColor(i)),
       child: ListTile(
-      leading: Icon(Icons.account_circle, color: Colors.blue, size: 75),
-      title: Text("${allhelpers[i]}", style: TextStyle(fontSize: 25.0)),
+      title: Icon(Icons.account_circle, color: Colors.blue, size: 75),
       subtitle: con,
       contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-      onTap: (){
-
-      }
+      onTap: true ? (){
+        print("tapped${i.toString()}");
+      }: null,
     ),
     );
   }
@@ -41,7 +64,7 @@ class VipDashboard extends StatelessWidget {
       child: ListView.builder(
         itemCount: allhelpers.length, //change to total number of helpers
         padding: const EdgeInsets.all(0.0),
-        itemBuilder: (context, index) => _buildList(index)
+        itemBuilder: (context, index) => _buildList(index, context)
       ),
     );
   }
@@ -50,22 +73,24 @@ class VipDashboard extends StatelessWidget {
 class loggedAccVIP extends StatefulWidget {
   String token;
   List<dynamic> allhelpers;
+  String uName;
 
-  loggedAccVIP(this.token, this.allhelpers);
+  loggedAccVIP(this.token, this.allhelpers, this.uName);
 
-  _loggedAccVIPState createState() => _loggedAccVIPState(this.token, this.allhelpers);
+  _loggedAccVIPState createState() => _loggedAccVIPState(this.token, this.allhelpers, this.uName);
 }
 
 class _loggedAccVIPState extends State<loggedAccVIP> {
   String token;
   List<dynamic> allhelpers;
+  String uName;
 
   int _selectedIndex = 0;
   final _widgetOptions = [
     Text('Index 0: Helpers'),
     Text('Index 1: Find New Helpers')];
 
-  _loggedAccVIPState(this.token, this.allhelpers);
+  _loggedAccVIPState(this.token, this.allhelpers, this.uName);
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +120,7 @@ class _loggedAccVIPState extends State<loggedAccVIP> {
             DrawerHeader(
               child: Row(
                 children: [accIcon,
-                  Text('Account Name', style: new TextStyle(fontSize: 20, color: Colors.white),),
+                  Text(uName, style: new TextStyle(fontSize: 20, color: Colors.white),),
                 ],
               ),
               decoration: BoxDecoration( 

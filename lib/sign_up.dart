@@ -7,7 +7,9 @@ import 'package:flutter_udid/flutter_udid.dart';
 import 'dart:convert';
 
 class signUp extends StatefulWidget {
-  _signUpState createState() => _signUpState();
+  String urlBase;
+  signUp(this.urlBase);
+  _signUpState createState() => _signUpState(urlBase);
 }
 
 class _signUpState extends State<signUp> {
@@ -16,6 +18,8 @@ class _signUpState extends State<signUp> {
   var _password = TextEditingController();
   var _conPass = TextEditingController();
   int _rValue1 = -1;
+  String urlBase;
+  _signUpState(this.urlBase);
 
   void _handleValue1(int value)
   {
@@ -26,6 +30,7 @@ class _signUpState extends State<signUp> {
 
   Future<dynamic> connect() async{
     String udid = await FlutterUdid.consistentUdid;
+    print(udid);
     if (_fullName.text.length == 0 || _userName.text.length == 0 || _rValue1 == -1 || _password.text.length == 0 || _conPass.text.length == 0)
     {
       return null;
@@ -38,7 +43,7 @@ class _signUpState extends State<signUp> {
       'c_password': _conPass.text,
       'UUID': udid,
     };
-    var url = "https://vip-serv.herokuapp.com/api/register_user";
+    var url = urlBase + "/register_user";
     var response = await http.post(url, body: body);
     print("${response.body}");
     return jsonDecode(response.body);
@@ -116,6 +121,7 @@ class _signUpState extends State<signUp> {
           child: TextFormField(
             inputFormatters: [
               new WhitelistingTextInputFormatter(new RegExp("[a-zA-Z0-9]")),
+              LengthLimitingTextInputFormatter(10),
             ],
             controller: _userName,
             autofocus: false,

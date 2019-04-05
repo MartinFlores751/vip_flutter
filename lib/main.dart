@@ -15,6 +15,7 @@ import 'logged_accVIP.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_udid/flutter_udid.dart';
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 
 void main() => runApp(MyApp());
 
@@ -41,31 +42,64 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
   var _username = TextEditingController();
   var _password = TextEditingController();
   String udid;
   String token;
+  String urlBase = "https://vip-serv.herokuapp.com/api";
+
+  AppLifecycleState _lastLifecycleState;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _lastLifecycleState = state;
+    });
+  }
 
   Future<dynamic> connect() async{
     udid = await FlutterUdid.consistentUdid;
+    print(udid);
+    //udid = await FlutterUdid.consistentUdid;
     Map<String, String> body = {
       'user': _username.text,
       'password': _password.text,
       'UUID': udid,
     };
-    var url = "https://vip-serv.herokuapp.com/api/authenticate_user";
+    var url = urlBase + "/authenticate_user";
     var response = await http.post(url, body: body);
-    print("${response.body}");
+    print(response.body);
     return jsonDecode(response.body);
   }
   Future<dynamic> getHelpers() async{
-    print("IN");
-    print("$token  $udid");
-    var url = "https://vip-serv.herokuapp.com/api/get_helpers?token=$token&UUID=$udid";
-    var response = await http.get(url);
-    print("OUT");
-    print("${response.body}");
+    Map<String, String> body = {
+      "token": token,
+      "UUID": udid,
+    };
+    var url = urlBase + "/get_helpers";
+    var response = await http.post(url, body: body);
+    print(response.body);
+    return jsonDecode(response.body);
+  }
+  Future<dynamic> getVips() async{
+    Map<String, String> body = {
+      "token": token,
+      "UUID": udid,
+    };
+    var url = urlBase + "/get_VIP";
+    var response = await http.post(url, body: body);
     return jsonDecode(response.body);
   }
 
@@ -79,36 +113,69 @@ class _MyHomePageState extends State<MyHomePage> {
     if (response["success"]){
       bool helper = response["isHelper"];
       token = response["token"];
-      var vipresponse = await getHelpers();
-      if (vipresponse["success"]){
-        List<dynamic> allhelpers = vipresponse["users"];
+      var response2 = helper ? await getVips() : await getHelpers();
+      if (response2["success"]){
+        List<dynamic> allusers = jsonDecode(response2["users"]);
         Fluttertoast.showToast(msg: 'Login Successful',toastLength: Toast.LENGTH_SHORT);
         if (helper == false){
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => loggedAccVIP(token, allhelpers)),
+            MaterialPageRoute(builder: (context) => loggedAccVIP(token, allusers, _username.text)),
           );
         }
         else
         {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => loggedAcc(token)), //replace (token) with (token, allvip)
+            MaterialPageRoute(builder: (context) => loggedAcc(token)), //replace (token) with (token, allusers, _username.text)
           );
         }
-      }
-      else {
-        token = "";
       }
     }
     else{
       Fluttertoast.showToast(msg: '${response["error"]}',toastLength: Toast.LENGTH_SHORT);
     }
   }
-
+  void checkPaused(int i) async
+  {
+    if(i == 10)
+    {
+      if (_lastLifecycleState.index == 2){
+        print("LOGGING OUT");
+      }
+      return;
+    }
+    else
+    {
+      await Future.delayed(Duration(seconds: 2));
+      print(_lastLifecycleState);
+      if (_lastLifecycleState.index == 2)
+      {
+        checkPaused(i+1);
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     FocusNode textSecondFocusNode = new FocusNode();
+
+    print(_lastLifecycleState);
+    if (_lastLifecycleState != null){
+      switch(_lastLifecycleState.index)
+      {
+        case 0:
+          print("Resumed"); //App Resumed
+          break;
+        case 1:
+          print("Inactive");
+          checkPaused(0); //THIS ONE OR
+          break;
+        case 2:
+          print("Paused");
+          checkPaused(0); //THIS ONE
+          break;
+      }
+    }
 
     var loginCredentials = new Column(children: [
         Container(
@@ -176,7 +243,7 @@ class _MyHomePageState extends State<MyHomePage> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => signUp()),
+              MaterialPageRoute(builder: (context) => signUp(urlBase)),
             );
           },
         )
