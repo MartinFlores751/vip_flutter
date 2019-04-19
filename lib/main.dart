@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'dart:io';
 import 'sign_up.dart';
 import 'logged_acc.dart';
 import 'logged_accVIP.dart';
@@ -16,6 +17,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_udid/flutter_udid.dart';
 import 'dart:convert';
 import 'package:flutter/widgets.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() => runApp(MyApp());
 
@@ -34,53 +36,31 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-  final String title;
-
+class GoLogin extends StatefulWidget {
+  String username;
+  String password;
+  GoLogin(this.username, this.password);
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _GoLoginState createState() => _GoLoginState(username, password);
 }
 
-class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
-  var _username = TextEditingController();
-  var _password = TextEditingController();
+class _GoLoginState extends State<GoLogin> {
+  String username;
+  String password;
+  _GoLoginState(this.username, this.password);
   String udid;
   String token;
   String urlBase = "https://vip-serv.herokuapp.com/api";
 
-  AppLifecycleState _lastLifecycleState;
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() {
-      _lastLifecycleState = state;
-    });
-  }
-
   Future<dynamic> connect() async{
     udid = await FlutterUdid.consistentUdid;
-    print(udid);
-    //udid = await FlutterUdid.consistentUdid;
     Map<String, String> body = {
-      'user': _username.text,
-      'password': _password.text,
+      'user': username,
+      'password': password,
       'UUID': udid,
     };
     var url = urlBase + "/authenticate_user";
     var response = await http.post(url, body: body);
-    print(response.body);
     return jsonDecode(response.body);
   }
   Future<dynamic> getHelpers() async{
@@ -90,7 +70,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
     };
     var url = urlBase + "/get_helpers";
     var response = await http.post(url, body: body);
-    print(response.body);
     return jsonDecode(response.body);
   }
   Future<dynamic> getVips() async{
@@ -102,86 +81,127 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
     var response = await http.post(url, body: body);
     return jsonDecode(response.body);
   }
+  @override
+  Widget build(BuildContext context) {
+    var a = FutureBuilder<dynamic>(
+      future: connect(), // a previously-obtained Future<String> or null
+      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+            return CircularProgressIndicator();
+          case ConnectionState.active:
+            return CircularProgressIndicator();
+          case ConnectionState.waiting:
+            return CircularProgressIndicator();
+          case ConnectionState.done:
+            if (snapshot.hasError)
+              return Text('Error: ${snapshot.error}');
+            var response = snapshot.data;
+            print("PASS CONNECT: $response");
+            if (response["success"]){
+              bool helper = response["isHelper"];
+              token = response["token"];
+              print("GOING IN BOIS");
+              return FutureBuilder<dynamic>(
+                  future: helper ? getVips() : getHelpers(), // a previously-obtained Future<String> or null
+                  builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                        return CircularProgressIndicator();
+                      case ConnectionState.active:
+                        return CircularProgressIndicator();
+                      case ConnectionState.waiting:
+                        return CircularProgressIndicator();
+                      case ConnectionState.done:
+                        if (snapshot.hasError)
+                          return Text('Error: ${snapshot.error}');
+                        var response2 = snapshot.data;
+                        if (response2["success"]){
+                          List<dynamic> allusers = jsonDecode(response2["users"]);
+                          Fluttertoast.showToast(msg: 'Login Successful',toastLength: Toast.LENGTH_SHORT);
+                          if (helper == false){
+                            final DocumentReference postRef = Firestore.instance.collection("Users").document('OnlineCount');
+                            Firestore.instance.runTransaction((Transaction tx) async {
+                              DocumentSnapshot postSnapshot = await tx.get(postRef);
+                              if (postSnapshot.exists) {
+                                await tx.update(postRef, <String, dynamic>{'TotalOnline': postSnapshot.data['TotalOnline'] + 1});
+                                await tx.update(postRef, <String, dynamic>{'VipOnline': postSnapshot.data['VipOnline'] + 1});
+                              }
+                              Map<String, dynamic> body = {
+                                  "${username}":{
+                                  "away": false,
+                                  "online": true,
+                                }
+                              };
+                              Firestore.instance.collection('Users').document('allUsers').updateData(body);
+                              Firestore.instance.collection('Users').document('allVip').updateData(body); //Change to allVips
+                            });
+                            return loggedAccVIP(token, allusers, username);
+                          }
+                          else
+                          {
+                            final DocumentReference postRef = Firestore.instance.collection("Users").document('OnlineCount');
+                            Firestore.instance.runTransaction((Transaction tx) async {
+                              DocumentSnapshot postSnapshot = await tx.get(postRef);
+                              if (postSnapshot.exists) {
+                                await tx.update(postRef, <String, dynamic>{'TotalOnline': postSnapshot.data['TotalOnline'] + 1});
+                                await tx.update(postRef, <String, dynamic>{'HelpersOnline': postSnapshot.data['HelpersOnline'] + 1});
+                              }
+                              Map<String, dynamic> body = {
+                                "${username}":{
+                                  "away": false,
+                                  "online": true,
+                                }
+                              };
+                              Firestore.instance.collection('Users').document('allUsers').updateData(body);
+                              Firestore.instance.collection('Users').document('allHelpers').updateData(body);
+                            });
+                            return loggedAcc(token); //replace (token) with (token, allusers, _username.text)
+                          }
+                        }
+                    }
+                    return null; // unreachable
+                  },
+                );
+            }
+            else{
+              Fluttertoast.showToast(msg: '${response["error"]}',toastLength: Toast.LENGTH_SHORT);
+            }
+        }
+        return null; // unreachable
+      },
+    );
+    return Scaffold(
+      //appBar: AppBar(title: Text("")),
+      body: Align(
+        alignment: FractionalOffset(.5, .5),
+        child: a,
+      ),
+    );
+  }
+}
 
-  void login() async{
-    if (_username.text.length == 0 || _password.text.length == 0)
-    {
-      Fluttertoast.showToast(msg: 'Field(s) Empty',toastLength: Toast.LENGTH_SHORT);
-      return;
-    }
-    var response = await connect();
-    if (response["success"]){
-      bool helper = response["isHelper"];
-      token = response["token"];
-      var response2 = helper ? await getVips() : await getHelpers();
-      if (response2["success"]){
-        List<dynamic> allusers = jsonDecode(response2["users"]);
-        Fluttertoast.showToast(msg: 'Login Successful',toastLength: Toast.LENGTH_SHORT);
-        if (helper == false){
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => loggedAccVIP(token, allusers, _username.text)),
-          );
-        }
-        else
-        {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => loggedAcc(token)), //replace (token) with (token, allusers, _username.text)
-          );
-        }
-      }
-    }
-    else{
-      Fluttertoast.showToast(msg: '${response["error"]}',toastLength: Toast.LENGTH_SHORT);
-    }
-  }
-  void checkPaused(int i) async
-  {
-    if(i == 10)
-    {
-      if (_lastLifecycleState.index == 2){
-        print("LOGGING OUT");
-      }
-      return;
-    }
-    else
-    {
-      await Future.delayed(Duration(seconds: 2));
-      print(_lastLifecycleState);
-      if (_lastLifecycleState.index == 2)
-      {
-        checkPaused(i+1);
-      }
-    }
-  }
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
+  final String title;
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage>{
+  var _username = TextEditingController();
+  var _password = TextEditingController();
+  String urlBase = "https://vip-serv.herokuapp.com/api";
+  
   @override
   Widget build(BuildContext context) {
     FocusNode textSecondFocusNode = new FocusNode();
 
-    print(_lastLifecycleState);
-    if (_lastLifecycleState != null){
-      switch(_lastLifecycleState.index)
-      {
-        case 0:
-          print("Resumed"); //App Resumed
-          break;
-        case 1:
-          print("Inactive");
-          checkPaused(0); //THIS ONE OR
-          break;
-        case 2:
-          print("Paused");
-          checkPaused(0); //THIS ONE
-          break;
-      }
-    }
-
     var loginCredentials = new Column(children: [
         Container(
           padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-          width: 160,
-          height: 50,
+          width: MediaQuery.of(context).size.width/1.5,
           child: TextFormField(
             inputFormatters: [
               new WhitelistingTextInputFormatter(new RegExp("[a-zA-Z0-9]")),
@@ -193,17 +213,23 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
             autofocus: false,
             obscureText: false,
             textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-              //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              labelText: 'Username'
+            decoration: new InputDecoration(
+              border: new OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+                  borderSide: new BorderSide(color: Colors.teal)),
+              hintText: 'Username',
+              labelText: 'Username',
+              prefixIcon: const Icon(
+                Icons.person,
+                color: Colors.blue,
+              ),
+              prefixText: ' ',
             ),
           ),
         ),
+        SizedBox(height: 10,),
         Container(
           padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-          width: 160,
-          height: 50,
+          width: MediaQuery.of(context).size.width/1.5,
           child: TextFormField(
             inputFormatters: [
               new BlacklistingTextInputFormatter(new RegExp("[ ]")),
@@ -212,23 +238,33 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
             controller: _password,
             autofocus: false,
             obscureText: true,
-            decoration: InputDecoration(
-              contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-              //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              labelText: 'Password'
+            decoration: new InputDecoration(
+              border: new OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+                  borderSide: new BorderSide(color: Colors.teal)),
+              hintText: '******',
+              labelText: 'Password',
+              prefixIcon: const Icon(
+                Icons.enhanced_encryption,
+                color: Colors.blue,
+              ),
+              suffixStyle: const TextStyle(color: Colors.green)
             ),
           ),
         ),
       ],
     );
 
-    var loggedAccScreen = IconButton(
-      icon: Icon(Icons.arrow_forward),
-      color: Colors.blue,
-      iconSize: 55,
-      onPressed: () {
-        login();
-      }
+    var loggedAccScreen2 = RaisedButton(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Text("Login"),
+      color: Colors.blue[200],
+      onPressed: (){
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) =>  GoLogin(_username.text, _password.text)),
+        );
+      },
     );
 
     var createNewUser = new Row(
@@ -249,19 +285,30 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
         )
       ]
     );
-
+    var theIcon = Icon(
+      Icons.camera,
+      size: 90,
+      //color: Colors.blue[800],
+    );
+    var theContainer = Container(
+      decoration: BoxDecoration(
+        color: Colors.blue,
+        shape: BoxShape.circle,
+        border: Border.all(width: 5, color: Colors.black)
+        
+      ),
+      child: theIcon,
+    );
 
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
-      appBar: AppBar(
-        title: Center(child: Text(widget.title)),
-      ),
-      body: new Center(
+      //resizeToAvoidBottomPadding: false,
+      body: new Align(
+        alignment: FractionalOffset(.5, .5),
         child: Container(
-          padding: EdgeInsets.fromLTRB(0, 70, 0, 0),
+          //padding: EdgeInsets.fromLTRB(0, MediaQuery.of(context).size.height/5, 0, 0),
           child: Column(
-            //mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[loginCredentials, loggedAccScreen, createNewUser],
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[theContainer, SizedBox(height: 15), loginCredentials, loggedAccScreen2, createNewUser],
           ),
         ),
       ),

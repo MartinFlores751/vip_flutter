@@ -1,0 +1,40 @@
+{
+    "project_info": {
+      "project_number": "690484065309",
+      "firebase_url": "https://thevip-e0b6e.firebaseio.com",
+      "project_id": "thevip-e0b6e",
+      "storage_bucket": "thevip-e0b6e.appspot.com"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:690484065309:android:fe4e2b12ebf03923",
+          "android_client_info": {
+            "package_name": "edu.utrgv.vipflutter"
+          }
+        },
+        "oauth_client": [
+          {
+            "client_id": "690484065309-dd3tsh3emo2pinqullaqq9arp6e1k2a4.apps.googleusercontent.com",
+            "client_type": 3
+          }
+        ],
+        "api_key": [
+          {
+            "current_key": "AIzaSyD8jyu3_O8gV4NIK-AnKc9fArlJQOJGvR0"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": [
+              {
+                "client_id": "690484065309-dd3tsh3emo2pinqullaqq9arp6e1k2a4.apps.googleusercontent.com",
+                "client_type": 3
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }

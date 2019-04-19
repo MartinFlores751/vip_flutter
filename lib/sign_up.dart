@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_udid/flutter_udid.dart';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class signUp extends StatefulWidget {
   String urlBase;
@@ -30,7 +31,6 @@ class _signUpState extends State<signUp> {
 
   Future<dynamic> connect() async{
     String udid = await FlutterUdid.consistentUdid;
-    print(udid);
     if (_fullName.text.length == 0 || _userName.text.length == 0 || _rValue1 == -1 || _password.text.length == 0 || _conPass.text.length == 0)
     {
       return null;
@@ -45,7 +45,6 @@ class _signUpState extends State<signUp> {
     };
     var url = urlBase + "/register_user";
     var response = await http.post(url, body: body);
-    print("${response.body}");
     return jsonDecode(response.body);
   }
 
@@ -58,6 +57,19 @@ class _signUpState extends State<signUp> {
     }
     else if(response["success"])
     {
+      Map<String, dynamic> body = {
+        "${_userName.text}":{
+          "away": false,
+          "online": false,
+        }
+      };
+      Firestore.instance.collection('Users').document('allUsers').updateData(body);
+      if (_rValue1 == 1){
+        Firestore.instance.collection('Users').document('allHelpers').updateData(body);
+      }
+      else{
+        Firestore.instance.collection('Users').document('allVip').updateData(body);
+      }
       Fluttertoast.showToast(msg: 'Account Created!',toastLength: Toast.LENGTH_SHORT);
       Navigator.pop(context);
     }
@@ -97,7 +109,7 @@ class _signUpState extends State<signUp> {
       children: [
         radio,
         Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+          //padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
           width: 160,
           height: 50,
           child: TextFormField(
@@ -115,7 +127,7 @@ class _signUpState extends State<signUp> {
           ),
         ),
         Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+          //padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
           width: 160,
           height: 50,
           child: TextFormField(
@@ -134,7 +146,7 @@ class _signUpState extends State<signUp> {
           ),
         ),
         Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+          //padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
           width: 160,
           height: 50,
           child: TextFormField(
@@ -152,7 +164,7 @@ class _signUpState extends State<signUp> {
           ),
         ),
         Container(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+          //padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
           width: 160,
           height: 50,
           child: TextFormField(
@@ -193,12 +205,14 @@ class _signUpState extends State<signUp> {
       appBar: AppBar(
         title: Text(''),
       ),
-      body: new Center(
-        child: Container(
-          padding: EdgeInsets.fromLTRB(0, 70, 0, 0),
+      body: new Container(
+        //alignment: FractionalOffset(.5, .5),
+        child: Align(
+          alignment: FractionalOffset(.5, .5),
+          //padding: EdgeInsets.fromLTRB(0, 70, 0, 0),
           child: Column(
             //mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[signUpCredentials, created],
+            children: <Widget>[SizedBox(height: 30,), signUpCredentials, created],
           ),
         ),
       ),
