@@ -61,7 +61,8 @@ class _GoLoginState extends State<GoLogin> {
     };
     var url = urlBase + "/authenticate_user";
     var response = await http.post(url, body: body);
-    return jsonDecode(response.body);
+    var jsonResp = jsonDecode(response.body);
+    return jsonResp;
   }
   Future<dynamic> getHelpers() async{
     Map<String, String> body = {
@@ -81,9 +82,8 @@ class _GoLoginState extends State<GoLogin> {
     var response = await http.post(url, body: body);
     return jsonDecode(response.body);
   }
-  @override
-  Widget build(BuildContext context) {
-    var a = FutureBuilder<dynamic>(
+  Widget theBuilder(){
+    return FutureBuilder<dynamic>(
       future: connect(), // a previously-obtained Future<String> or null
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         switch (snapshot.connectionState) {
@@ -98,6 +98,14 @@ class _GoLoginState extends State<GoLogin> {
               return Text('Error: ${snapshot.error}');
             var response = snapshot.data;
             print("PASS CONNECT: $response");
+            if (!response["success"]){          //THIS THING HAS AN ERROR
+                print("ERROR AFTER THIS BOIS");
+                Fluttertoast.showToast(msg: '${response["error"]}',toastLength: Toast.LENGTH_SHORT);
+                print("alsdjfsd");
+                Navigator.pop(context);
+                print("WADDUP");
+                return Container();
+            }
             if (response["success"]){
               bool helper = response["isHelper"];
               token = response["token"];
@@ -164,18 +172,18 @@ class _GoLoginState extends State<GoLogin> {
                   },
                 );
             }
-            else{
-              Fluttertoast.showToast(msg: '${response["error"]}',toastLength: Toast.LENGTH_SHORT);
-            }
         }
         return null; // unreachable
       },
     );
+  }
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       //appBar: AppBar(title: Text("")),
       body: Align(
         alignment: FractionalOffset(.5, .5),
-        child: a,
+        child: theBuilder(),
       ),
     );
   }
@@ -260,10 +268,15 @@ class _MyHomePageState extends State<MyHomePage>{
       child: Text("Login"),
       color: Colors.blue[200],
       onPressed: (){
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) =>  GoLogin(_username.text, _password.text)),
-        );
+        if (_username.text.length > 0 && _password.text.length > 0){
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) =>  GoLogin(_username.text, _password.text)),
+          );
+        }
+        else{
+          Fluttertoast.showToast(msg: 'Field(s) Empty',toastLength: Toast.LENGTH_SHORT);
+        }
       },
     );
 

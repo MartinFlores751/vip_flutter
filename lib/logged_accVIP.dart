@@ -5,17 +5,115 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/widgets.dart';
+import 'signaling.dart';
+import 'package:flutter_webrtc/webrtc.dart';  //Use Webrtc
 
 class VipDashboard extends StatefulWidget {
   List<dynamic> allhelpers;
-  VipDashboard(this.allhelpers);
+  String token;
+  VipDashboard(this.allhelpers, this.token);
   @override
-  _VipDashboardState createState() => _VipDashboardState(allhelpers);
+  _VipDashboardState createState() => _VipDashboardState(allhelpers, token);
 }
 
 class _VipDashboardState extends State<VipDashboard> {
   List<dynamic> allhelpers;
-  _VipDashboardState(this.allhelpers);
+  String token;
+  _VipDashboardState(this.allhelpers, this.token);
+
+  final String serverIP = "129.113.228.50"; //Use Webrtc
+  bool _inCalling = false;  //Use Webrtc
+  Signaling _signaling; //Use Webrtc
+  var _selfId;  //Use Webrtc
+  List<dynamic> _peers; //Use Webrtc
+  RTCVideoRenderer _localRenderer = new RTCVideoRenderer(); //Use Webrtc
+  RTCVideoRenderer _remoteRenderer = new RTCVideoRenderer();  //Use Webrtc
+
+  @override //Use Webrtc
+  initState() {
+    super.initState();
+    initRenderers();
+    _connect();
+  }
+  initRenderers() async { //Use Webrtc
+    await _localRenderer.initialize();
+    await _remoteRenderer.initialize();
+  }
+  @override //Use Webrtc
+  deactivate() {
+    super.deactivate();
+    if (_signaling != null) _signaling.close();
+    _localRenderer.dispose();
+    _remoteRenderer.dispose();
+  } //Use Webrtc
+  void _connect() async {
+    if (_signaling == null) {
+      _signaling = new Signaling('ws://' + serverIP + ':4442', "Waddup")
+        ..connect();
+
+      _signaling.onStateChange = (SignalingState state) {
+        switch (state) {
+          case SignalingState.CallStateNew:
+            this.setState(() {
+              _inCalling = true;
+            });
+            break;
+          case SignalingState.CallStateBye:
+            this.setState(() {
+              _localRenderer.srcObject = null;
+              _remoteRenderer.srcObject = null;
+              _inCalling = false;
+            });
+            break;
+          case SignalingState.CallStateInvite:
+          case SignalingState.CallStateConnected:
+          case SignalingState.CallStateRinging:
+          case SignalingState.ConnectionClosed:
+          case SignalingState.ConnectionError:
+          case SignalingState.ConnectionOpen:
+            break;
+        }
+      };
+
+      _signaling.onPeersUpdate = ((event) {
+        this.setState(() {
+          _selfId = event['self'];
+          _peers = event['peers'];
+        });
+      });
+
+      _signaling.onLocalStream = ((stream) {
+        _localRenderer.srcObject = stream;
+      });
+
+      _signaling.onAddRemoteStream = ((stream) {
+        _remoteRenderer.srcObject = stream;
+      });
+
+      _signaling.onRemoveRemoteStream = ((stream) {
+        _remoteRenderer.srcObject = null;
+      });
+    }
+  }
+  _invitePeer(context, peerId, use_screen) async {  //Use Webrtc
+    if (_signaling != null && peerId != _selfId) {
+      _signaling.invite(peerId, 'video', use_screen);
+    }
+  }
+
+  _hangUp() { //Use Webrtc
+    if (_signaling != null) {
+      _signaling.bye();
+    }
+  }
+
+  _switchCamera() { //Use Webrtc
+    _signaling.switchCamera();
+  }
+  _muteMic() {  //Use Webrtc
+
+  }
+
   _buildColor(int i)
   {
     if (i == 0)
@@ -31,7 +129,7 @@ class _VipDashboardState extends State<VipDashboard> {
       return Colors.grey[300];
     }
   }
-  _buildList(int i, BuildContext context, var a)
+  _buildList(int i, BuildContext context, var a, peer)
   {
     var con = Container(
       height: 180,
@@ -44,13 +142,13 @@ class _VipDashboardState extends State<VipDashboard> {
               a[a.keys.elementAt(i)]['online'] ? Text("Status: Available", style: TextStyle(fontSize: 20.0)) : 
               Text("Status: Offline", style: TextStyle(fontSize: 20.0))
           ),
-            
-          //Text("Status: Available", style: TextStyle(fontSize: 20.0)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               IconButton(iconSize: 75, color: Colors.purple, icon: Icon(Icons.person_add), onPressed: (){},),
-              IconButton(iconSize: 75, color: Colors.blue, icon: Icon(Icons.videocam), onPressed: (){},),
+              IconButton(iconSize: 75, color: Colors.blue, icon: Icon(Icons.videocam), onPressed: (){
+                _invitePeer(context, peer['id'], false);
+              },),
               IconButton(iconSize: 75, color: Colors.red, icon: Icon(Icons.remove_circle), onPressed: (){},),
             ],
           ),
@@ -85,25 +183,80 @@ class _VipDashboardState extends State<VipDashboard> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: Firestore.instance.collection('Users').document('allHelpers').snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasError)
-          return new Text('Error: ${snapshot.error}');
-        switch (snapshot.connectionState) {
-          case ConnectionState.waiting: return new Text('Loading...');
-          default:
-            var a = snapshot.data.data;
-            return Container(
-              child: ListView.builder(
-                itemCount: a.length,
-                padding: const EdgeInsets.all(0.0),
-                itemBuilder: (context, index) => _buildList(index, context, a)
-              ),
-            );
-        }
-      },
+  Widget build(BuildContext context) {                  //USE SOME OF WEBRTC
+    return Scaffold(
+      appBar: null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton:_inCalling
+          ? new SizedBox(
+            width: 200.0,
+            child: new Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  FloatingActionButton(
+                    child: const Icon(Icons.switch_camera),
+                    onPressed: _switchCamera,
+                  ),
+                  FloatingActionButton(
+                    onPressed: _hangUp,
+                    tooltip: 'Hangup',
+                    child: new Icon(Icons.call_end),
+                    backgroundColor: Colors.pink,
+                  ),
+                  FloatingActionButton(
+                    child: const Icon(Icons.mic_off),
+                    onPressed: _muteMic,
+                  )
+                ])) : null,
+      body: _inCalling
+          ? OrientationBuilder(builder: (context, orientation) {
+              return new Container(
+                child: new Stack(children: <Widget>[
+                  new Positioned(
+                      left: 0.0,
+                      right: 0.0,
+                      top: 0.0,
+                      bottom: 0.0,
+                      child: new Container(
+                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height,
+                        child: new RTCVideoView(_remoteRenderer),
+                        decoration: new BoxDecoration(color: Colors.black54),
+                      )),
+                  new Positioned(
+                    left: 20.0,
+                    top: 20.0,
+                    child: new Container(
+                      width: orientation == Orientation.portrait ? 90.0 : 120.0,
+                      height:
+                          orientation == Orientation.portrait ? 120.0 : 90.0,
+                      child: new RTCVideoView(_localRenderer),
+                      decoration: new BoxDecoration(color: Colors.black54),
+                    ),
+                  ),
+                ]),
+              );
+            })
+          : StreamBuilder<DocumentSnapshot>(
+              stream: Firestore.instance.collection('Users').document('allHelpers').snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                if (snapshot.hasError)
+                  return new Text('Error: ${snapshot.error}');
+                switch (snapshot.connectionState) {
+                  case ConnectionState.waiting: return new Text('Loading...');
+                  default:
+                    var a = snapshot.data.data;
+                    return Container(
+                      child: ListView.builder(
+                        itemCount: a.length,
+                        padding: const EdgeInsets.all(0.0),
+                        itemBuilder: (context, index) => _buildList(index, context, a, _peers)
+                      ),
+                    );
+                }
+              },
+            ),
     );
   }
 }
@@ -289,7 +442,7 @@ class _loggedAccVIPState extends State<loggedAccVIP> with WidgetsBindingObserver
 
     _buildSomething(){
       if (_selectedIndex == 1){
-        return VipDashboard(allhelpers);
+        return VipDashboard(allhelpers, token);
       }
       else{
         return StreamBuilder<DocumentSnapshot>(
