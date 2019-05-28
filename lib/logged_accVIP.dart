@@ -1,3 +1,4 @@
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'settings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,18 +9,95 @@ import 'package:flutter/widgets.dart';
 import 'signaling.dart';
 import 'package:flutter_webrtc/webrtc.dart';  //Use Webrtc
 
-class VipDashboard extends StatefulWidget {
-  List<dynamic> allhelpers;
+class loggedAccVIP extends StatefulWidget {
   String token;
-  VipDashboard(this.allhelpers, this.token);
-  @override
-  _VipDashboardState createState() => _VipDashboardState(allhelpers, token);
+  List<dynamic> allhelpers;
+  String uName;
+
+  loggedAccVIP(this.token, this.allhelpers, this.uName);
+
+  _loggedAccVIPState createState() => _loggedAccVIPState(this.token, this.allhelpers, this.uName);
 }
 
-class _VipDashboardState extends State<VipDashboard> {
-  List<dynamic> allhelpers;
+class _loggedAccVIPState extends State<loggedAccVIP> with WidgetsBindingObserver{
   String token;
-  _VipDashboardState(this.allhelpers, this.token);
+  List<dynamic> allhelpers;
+  String uName;
+
+  String urlBase = "https://vip-serv.herokuapp.com/api";
+  int _selectedIndex = 0;
+
+  _loggedAccVIPState(this.token, this.allhelpers, this.uName);
+
+  _buildColor(int i)
+  {
+    if (i == 0)
+    {
+      return Colors.greenAccent[100];
+    }
+    else if (i == 1)
+    {
+      return Colors.yellowAccent[100];
+    }
+    else
+    {
+      return Colors.grey[300];
+    }
+  }
+  _buildIt(int i, BuildContext context, var a, peer)
+  {
+    var con = Container(
+      height: 180,
+      child: Column(
+        children: <Widget>[
+          Text("${a.keys.elementAt(i)}", style: TextStyle(color: Colors.black, fontSize: 40.0, fontWeight: FontWeight.bold)),
+          Divider(color: Colors.black,),
+          a[a.keys.elementAt(i)]['away'] ? 
+            Text("Status: Away", style: TextStyle(fontSize: 20.0)) : (
+              a[a.keys.elementAt(i)]['online'] ? Text("Status: Available", style: TextStyle(fontSize: 20.0)) : 
+              Text("Status: Offline", style: TextStyle(fontSize: 20.0))
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              IconButton(iconSize: 75, color: Colors.purple, icon: Icon(Icons.person_add), onPressed: (){},),
+              IconButton(iconSize: 75, color: Colors.blue, icon: Icon(Icons.videocam), onPressed: (){
+                _invitePeer(context, peer['id'], false);
+              },),
+              IconButton(iconSize: 75, color: Colors.red, icon: Icon(Icons.remove_circle), onPressed: (){},),
+            ],
+          ),
+        ],
+      )
+    );
+    return Container(
+      foregroundDecoration: a[a.keys.elementAt(i)]['online'] ? null : BoxDecoration(
+        color: Colors.grey,
+        backgroundBlendMode: BlendMode.saturation,
+      ),
+      height: MediaQuery.of(context).size.height/2.5,
+      decoration: a[a.keys.elementAt(i)]['online'] ? 
+        BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              width: 1.0,
+              color: Color(0xFFFF000000)
+            ),
+          ),
+          color: a[a.keys.elementAt(i)]['away'] ? _buildColor(1) : _buildColor(0),
+        ) : BoxDecoration(border: Border(bottom: BorderSide(width: 1.0, color: Color(0xFFFF000000)),), color: _buildColor(2)),
+      child: ListTile(
+        title: Icon(Icons.account_circle, color: Colors.blue, size: 75),
+        subtitle: con,
+        contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+        onTap: true ? (){
+          
+        }: null,
+      ),
+    );
+  }
+
+  AppLifecycleState _lastLifecycleState;
 
   final String serverIP = "129.113.228.50"; //Use Webrtc
   bool _inCalling = false;  //Use Webrtc
@@ -29,12 +107,6 @@ class _VipDashboardState extends State<VipDashboard> {
   RTCVideoRenderer _localRenderer = new RTCVideoRenderer(); //Use Webrtc
   RTCVideoRenderer _remoteRenderer = new RTCVideoRenderer();  //Use Webrtc
 
-  @override //Use Webrtc
-  initState() {
-    super.initState();
-    initRenderers();
-    _connect();
-  }
   initRenderers() async { //Use Webrtc
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
@@ -114,180 +186,11 @@ class _VipDashboardState extends State<VipDashboard> {
 
   }
 
-  _buildColor(int i)
-  {
-    if (i == 0)
-    {
-      return Colors.greenAccent[100];
-    }
-    else if (i == 1)
-    {
-      return Colors.yellowAccent[100];
-    }
-    else
-    {
-      return Colors.grey[300];
-    }
-  }
-  _buildList(int i, BuildContext context, var a, peer)
-  {
-    var con = Container(
-      height: 180,
-      child: Column(
-        children: <Widget>[
-          Text("${a.keys.elementAt(i)}", style: TextStyle(color: Colors.black, fontSize: 40.0, fontWeight: FontWeight.bold)),
-          Divider(color: Colors.black,),
-          a[a.keys.elementAt(i)]['away'] ? 
-            Text("Status: Away", style: TextStyle(fontSize: 20.0)) : (
-              a[a.keys.elementAt(i)]['online'] ? Text("Status: Available", style: TextStyle(fontSize: 20.0)) : 
-              Text("Status: Offline", style: TextStyle(fontSize: 20.0))
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              IconButton(iconSize: 75, color: Colors.purple, icon: Icon(Icons.person_add), onPressed: (){},),
-              IconButton(iconSize: 75, color: Colors.blue, icon: Icon(Icons.videocam), onPressed: (){
-                _invitePeer(context, peer['id'], false);
-              },),
-              IconButton(iconSize: 75, color: Colors.red, icon: Icon(Icons.remove_circle), onPressed: (){},),
-            ],
-          ),
-        ],
-      )
-    );
-    return Container(
-      foregroundDecoration: a[a.keys.elementAt(i)]['online'] ? null : BoxDecoration(
-        color: Colors.grey,
-        backgroundBlendMode: BlendMode.saturation,
-      ),
-      height: MediaQuery.of(context).size.height/2.5,
-      decoration: a[a.keys.elementAt(i)]['online'] ? 
-        BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              width: 1.0,
-              color: Color(0xFFFF000000)
-            ),
-          ),
-          color: a[a.keys.elementAt(i)]['away'] ? _buildColor(1) : _buildColor(0),
-        ) : BoxDecoration(border: Border(bottom: BorderSide(width: 1.0, color: Color(0xFFFF000000)),), color: _buildColor(2)),
-      child: ListTile(
-        title: Icon(Icons.account_circle, color: Colors.blue, size: 75),
-        subtitle: con,
-        contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-        onTap: true ? (){
-          
-        }: null,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {                  //USE SOME OF WEBRTC
-    return Scaffold(
-      appBar: null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton:_inCalling
-          ? new SizedBox(
-            width: 200.0,
-            child: new Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  FloatingActionButton(
-                    child: const Icon(Icons.switch_camera),
-                    onPressed: _switchCamera,
-                  ),
-                  FloatingActionButton(
-                    onPressed: _hangUp,
-                    tooltip: 'Hangup',
-                    child: new Icon(Icons.call_end),
-                    backgroundColor: Colors.pink,
-                  ),
-                  FloatingActionButton(
-                    child: const Icon(Icons.mic_off),
-                    onPressed: _muteMic,
-                  )
-                ])) : null,
-      body: _inCalling
-          ? OrientationBuilder(builder: (context, orientation) {
-              return new Container(
-                child: new Stack(children: <Widget>[
-                  new Positioned(
-                      left: 0.0,
-                      right: 0.0,
-                      top: 0.0,
-                      bottom: 0.0,
-                      child: new Container(
-                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height,
-                        child: new RTCVideoView(_remoteRenderer),
-                        decoration: new BoxDecoration(color: Colors.black54),
-                      )),
-                  new Positioned(
-                    left: 20.0,
-                    top: 20.0,
-                    child: new Container(
-                      width: orientation == Orientation.portrait ? 90.0 : 120.0,
-                      height:
-                          orientation == Orientation.portrait ? 120.0 : 90.0,
-                      child: new RTCVideoView(_localRenderer),
-                      decoration: new BoxDecoration(color: Colors.black54),
-                    ),
-                  ),
-                ]),
-              );
-            })
-          : StreamBuilder<DocumentSnapshot>(
-              stream: Firestore.instance.collection('Users').document('allHelpers').snapshots(),
-              builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                if (snapshot.hasError)
-                  return new Text('Error: ${snapshot.error}');
-                switch (snapshot.connectionState) {
-                  case ConnectionState.waiting: return new Text('Loading...');
-                  default:
-                    var a = snapshot.data.data;
-                    return Container(
-                      child: ListView.builder(
-                        itemCount: a.length,
-                        padding: const EdgeInsets.all(0.0),
-                        itemBuilder: (context, index) => _buildList(index, context, a, _peers)
-                      ),
-                    );
-                }
-              },
-            ),
-    );
-  }
-}
-
-class loggedAccVIP extends StatefulWidget {
-  String token;
-  List<dynamic> allhelpers;
-  String uName;
-
-  loggedAccVIP(this.token, this.allhelpers, this.uName);
-
-  _loggedAccVIPState createState() => _loggedAccVIPState(this.token, this.allhelpers, this.uName);
-}
-
-class _loggedAccVIPState extends State<loggedAccVIP> with WidgetsBindingObserver{
-  String token;
-  List<dynamic> allhelpers;
-  String uName;
-
-  String urlBase = "https://vip-serv.herokuapp.com/api";
-  int _selectedIndex = 0;
-  final _widgetOptions = [
-    Text('Index 0: Helpers'),
-    Text('Index 1: Find New Helpers')];
-
-  _loggedAccVIPState(this.token, this.allhelpers, this.uName);
-
-  AppLifecycleState _lastLifecycleState;
   @override
   void initState() {
     super.initState();
+    initRenderers();
+    _connect();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -439,114 +342,217 @@ class _loggedAccVIPState extends State<loggedAccVIP> with WidgetsBindingObserver
         _selectedIndex = index;
       });
     }
-
     _buildSomething(){
       if (_selectedIndex == 1){
-        return VipDashboard(allhelpers, token);
+        return Scaffold(
+          appBar: null,
+          body: StreamBuilder<DocumentSnapshot>(
+            stream: Firestore.instance.collection('Users').document('allHelpers').snapshots(),
+            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+              if (snapshot.hasError)
+                return new Text('Error: ${snapshot.error}');
+              switch (snapshot.connectionState) {
+                case ConnectionState.waiting: return Align(alignment: FractionalOffset(.5, .5), child: CircularProgressIndicator(),);
+                default:
+                  var a = snapshot.data.data;
+                  return Container(
+                    child: ListView.builder(
+                      itemCount: a.length,
+                      padding: const EdgeInsets.all(0.0),
+                      itemBuilder: (context, index) => _buildIt(index, context, a, _peers)
+                    ),
+                  );
+              }
+            },
+          ),
+        );
       }
       else{
-        return StreamBuilder<DocumentSnapshot>(
-          stream: Firestore.instance.collection('Users').document('OnlineCount').snapshots(),
-          builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-            if (snapshot.hasError)
-              return new Text('Error: ${snapshot.error}');
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting: return new Text('Loading...');
-              default:
-                var a = snapshot.data;
-                return Align(
-                  alignment: FractionalOffset(0, .0),
-                  child: Column(
-                    children: <Widget>[
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height/3-1,
-                        child: new RaisedButton.icon(
-                          icon: Icon(Icons.phone, size: 100, color: Colors.green,),
-                          label: Text("Call for Help", style: TextStyle(fontSize: 40),),
-                          color: Colors.green[100],
-                          elevation: 4.0,
-                          splashColor: Colors.green,
-                          onPressed: () {
-                            // Perform some action
-                          },
-                        ),
+        return Container(
+          child: Column(
+            children: <Widget>[
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height/3-1,
+                child: new RaisedButton.icon(
+                  icon: Icon(Icons.phone, size: 100, color: Colors.green,),
+                  label: Text("Call for Help", style: TextStyle(fontSize: 40),),
+                  color: Colors.green[100],
+                  elevation: 4.0,
+                  splashColor: Colors.green,
+                  onPressed: () {
+                    // Perform some action
+                  },
+                ),
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height/6,
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(width: 2.0, color: Color(0xFF000000)),
+                    left: BorderSide(width: 2.0, color: Color(0xFF000000)),
+                    right: BorderSide(width: 2.0, color: Color(0xFF000000)),
+                    bottom: BorderSide(width: 0.0, color: Color(0xFF000000)),
+                  ),
+                ),
+                child: Align(
+                  alignment: FractionalOffset(.5, .5),
+                  child: StreamBuilder<DocumentSnapshot>(
+                    stream: Firestore.instance.collection('Users').document('OnlineCount').snapshots(),
+                    builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                      if (snapshot.hasError)
+                        return new Text('Error: ${snapshot.error}');
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting: return CircularProgressIndicator();
+                        default:
+                          var a = snapshot.data;
+                          return Align(
+                            alignment: FractionalOffset(.5, .5),
+                            child: Text("Total Online: ${a["TotalOnline"]}", style: TextStyle(fontSize: 25),),
+                          );
+                      }
+                    },
+                  ),
+                ),
+              ),
+              Row(
+                children: <Widget>[
+                  Container(
+                    width: MediaQuery.of(context).size.width/2,
+                    height: MediaQuery.of(context).size.height/3-20,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(width: 2.0, color: Color(0xFF000000)),
+                        left: BorderSide(width: 2.0, color: Color(0xFF000000)),
+                        right: BorderSide(width: 0.0, color: Color(0xFF000000)),
+                        bottom: BorderSide(width: 2.0, color: Color(0xFF000000)),
                       ),
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height/6,
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(width: 2.0, color: Color(0xFF000000)),
-                            left: BorderSide(width: 2.0, color: Color(0xFF000000)),
-                            right: BorderSide(width: 2.0, color: Color(0xFF000000)),
-                            bottom: BorderSide(width: 0.0, color: Color(0xFF000000)),
-                          ),
-                        ),
-                        child: Align(
-                          alignment: FractionalOffset(.5, .5),
-                          child: Text("Total Online: ${a["TotalOnline"]}", style: TextStyle(fontSize: 25),),
-                        ),
-                      ),
-                      Row(
+                    ),
+                    child: Align(
+                      alignment: FractionalOffset(.5, .5),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          Container(
-                            width: MediaQuery.of(context).size.width/2,
-                            height: MediaQuery.of(context).size.height/3-20,
-                            decoration: BoxDecoration(
-                              border: Border(
-                                top: BorderSide(width: 2.0, color: Color(0xFF000000)),
-                                left: BorderSide(width: 2.0, color: Color(0xFF000000)),
-                                right: BorderSide(width: 0.0, color: Color(0xFF000000)),
-                                bottom: BorderSide(width: 2.0, color: Color(0xFF000000)),
-                              ),
-                            ),
-                            child: Align(
-                              alignment: FractionalOffset(.5, .5),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Text("VIP:", style: TextStyle(fontSize: 25),),
-                                  Text("${a["VipOnline"]}", style: TextStyle(fontSize: 50),),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: MediaQuery.of(context).size.width/2,
-                            height: MediaQuery.of(context).size.height/3-20,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.black,
-                                width: 2.0,
-                              ),
-                            ),
-                            child: Align(
-                              alignment: FractionalOffset(.5, .5),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Text("Helpers:", style: TextStyle(fontSize: 25),),
-                                  Text("${a["HelpersOnline"]}", style: TextStyle(fontSize: 50),),
-                                ],
-                              ),
-                            ),
+                          Text("VIP:", style: TextStyle(fontSize: 25),),
+                          StreamBuilder<DocumentSnapshot>(
+                            stream: Firestore.instance.collection('Users').document('OnlineCount').snapshots(),
+                            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                              if (snapshot.hasError)
+                                return new Text('Error: ${snapshot.error}');
+                              switch (snapshot.connectionState) {
+                                case ConnectionState.waiting: return CircularProgressIndicator();
+                                default:
+                                  var a = snapshot.data;
+                                  return Align(
+                                    alignment: FractionalOffset(.5, .5),
+                                    child: Text("${a["VipOnline"]}", style: TextStyle(fontSize: 50),),
+                                  );
+                              }
+                            },
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                );
-            }
-          },
+                  Container(
+                    width: MediaQuery.of(context).size.width/2,
+                    height: MediaQuery.of(context).size.height/3-20,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 2.0,
+                      ),
+                    ),
+                    child: Align(
+                      alignment: FractionalOffset(.5, .5),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text("Helpers:", style: TextStyle(fontSize: 25),),
+                          StreamBuilder<DocumentSnapshot>(
+                            stream: Firestore.instance.collection('Users').document('OnlineCount').snapshots(),
+                            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                              if (snapshot.hasError)
+                                return new Text('Error: ${snapshot.error}');
+                              switch (snapshot.connectionState) {
+                                case ConnectionState.waiting: return CircularProgressIndicator();
+                                default:
+                                  var a = snapshot.data;
+                                  return Align(
+                                    alignment: FractionalOffset(.5, .5),
+                                    child: Text("${a["HelpersOnline"]}", style: TextStyle(fontSize: 50),),
+                                  );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         );
       }
     }
     return Scaffold(
-      appBar: AppBar(title: Text('')),
+      appBar: _inCalling ? null: AppBar(title: Text('')),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton:_inCalling
+          ? new SizedBox(
+            width: 200.0,
+            child: new Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  FloatingActionButton(
+                    child: const Icon(Icons.switch_camera),
+                    onPressed: _switchCamera,
+                  ),
+                  FloatingActionButton(
+                    onPressed: _hangUp,
+                    tooltip: 'Hangup',
+                    child: new Icon(Icons.call_end),
+                    backgroundColor: Colors.pink,
+                  ),
+                  FloatingActionButton(
+                    child: const Icon(Icons.mic_off),
+                    onPressed: _muteMic,
+                  )
+                ])) : null,
       //add a body
-      body: _buildSomething(),
-      drawer: Drawer(
+      body: _inCalling
+          ? OrientationBuilder(builder: (context, orientation) {
+              return new Container(
+                child: new Stack(children: <Widget>[
+                  new Positioned(
+                      left: 0.0,
+                      right: 0.0,
+                      top: 0.0,
+                      bottom: 0.0,
+                      child: new Container(
+                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height,
+                        child: new RTCVideoView(_remoteRenderer),
+                        decoration: new BoxDecoration(color: Colors.black54),
+                      )),
+                  new Positioned(
+                    left: 20.0,
+                    top: 20.0,
+                    child: new Container(
+                      width: orientation == Orientation.portrait ? 90.0 : 120.0,
+                      height:
+                          orientation == Orientation.portrait ? 120.0 : 90.0,
+                      child: new RTCVideoView(_localRenderer),
+                      decoration: new BoxDecoration(color: Colors.black54),
+                    ),
+                  ),
+                ]),
+              );
+            }) : _buildSomething(), //PUT IT HERE
+      drawer: _inCalling ? null : Drawer(
         child: ListView(
           padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
           children: <Widget>[
@@ -595,14 +601,14 @@ class _loggedAccVIPState extends State<loggedAccVIP> with WidgetsBindingObserver
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-       items: <BottomNavigationBarItem>[
-         BottomNavigationBarItem(icon: Icon(Icons.visibility), title: Text('Get Help')),
-         BottomNavigationBarItem(icon: Icon(Icons.search), title: Text('Look For New Helpers')),
-       ],
-       currentIndex: _selectedIndex,
-       fixedColor: Colors.blueGrey,
-       onTap: _onItemTapped,
+      bottomNavigationBar: _inCalling ? null : BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.visibility), title: Text('Get Help')),
+          BottomNavigationBarItem(icon: Icon(Icons.search), title: Text('Look For New Helpers')),
+        ],
+        currentIndex: _selectedIndex,
+        fixedColor: Colors.blueGrey,
+        onTap: _onItemTapped,
       ),
     );
   }
