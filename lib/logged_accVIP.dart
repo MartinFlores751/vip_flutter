@@ -1,13 +1,15 @@
-import 'package:async/async.dart';
-import 'package:flutter/material.dart';
-import 'settings.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'signaling.dart';
-import 'package:flutter_webrtc/webrtc.dart';  //Use Webrtc
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_webrtc/webrtc.dart';
+
+import 'package:vip_flutter/settings.dart';
+import 'package:vip_flutter/signaling.dart';
 
 class loggedAccVIP extends StatefulWidget {
   String token;

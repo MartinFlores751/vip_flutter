@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter_webrtc/webrtc.dart';
-import 'random_string.dart';
+import 'package:vip_flutter/random_string.dart';
 
 enum SignalingState {
   CallStateNew,

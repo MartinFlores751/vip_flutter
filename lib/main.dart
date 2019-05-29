@@ -4,20 +4,22 @@
  *  Proprietary and confidential
  */
 
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
 import 'package:http/http.dart' as http;
-import 'dart:async';
-import 'dart:io';
-import 'sign_up.dart';
-import 'logged_acc.dart';
-import 'logged_accVIP.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_udid/flutter_udid.dart';
-import 'dart:convert';
-import 'package:flutter/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'package:vip_flutter/sign_up.dart';
+import 'package:vip_flutter/logged_acc.dart';
+import 'package:vip_flutter/logged_accVIP.dart';
 
 void main() => runApp(MyApp());
 

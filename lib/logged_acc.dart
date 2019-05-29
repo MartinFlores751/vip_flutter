@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'settings.dart';
+
+import 'package:vip_flutter/settings.dart';
 
 class UserDashboard extends StatelessWidget {
   @override
