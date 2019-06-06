@@ -35,7 +35,8 @@ class UserDashboard extends StatelessWidget {
             subtitle: Text("Status: Available"),
             contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
           )
-        ],),
+        ],
+      ),
     );
   }
 }
@@ -54,14 +55,13 @@ class _LoggedAccState extends State<LoggedAcc> {
     final String token = ModalRoute.of(context).settings.arguments;
 
     var accIcon = IconButton(
-      icon: Icon(Icons.account_box),
-      color: Colors.white,
-      iconSize: 80,
-      onPressed: () {
-        //show account information?
-      }
-    );
-    
+        icon: Icon(Icons.account_box),
+        color: Colors.white,
+        iconSize: 80,
+        onPressed: () {
+          //show account information?
+        });
+
     void onItemTapped(int index) {
       setState(() {
         selectedIndex = index;
@@ -78,11 +78,15 @@ class _LoggedAccState extends State<LoggedAcc> {
           children: <Widget>[
             DrawerHeader(
               child: Row(
-                children: [accIcon,
-                  Text('Account Name', style: new TextStyle(fontSize: 20, color: Colors.white),),
+                children: [
+                  accIcon,
+                  Text(
+                    'Account Name',
+                    style: new TextStyle(fontSize: 20, color: Colors.white),
+                  ),
                 ],
               ),
-              decoration: BoxDecoration( 
+              decoration: BoxDecoration(
                 color: Colors.blue,
               ),
             ),
@@ -106,13 +110,15 @@ class _LoggedAccState extends State<LoggedAcc> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-       items: <BottomNavigationBarItem>[
-         BottomNavigationBarItem(icon: Icon(Icons.visibility), title: Text('Helpers')),
-         BottomNavigationBarItem(icon: Icon(Icons.search), title: Text('Look For New Helpers')),
-       ],
-       currentIndex: selectedIndex,
-       fixedColor: Colors.blueGrey,
-       onTap: onItemTapped,
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+              icon: Icon(Icons.visibility), title: Text('Helpers')),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.search), title: Text('Look For New Helpers')),
+        ],
+        currentIndex: selectedIndex,
+        fixedColor: Colors.blueGrey,
+        onTap: onItemTapped,
       ),
     );
   }

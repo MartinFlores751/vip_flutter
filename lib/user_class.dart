@@ -7,5 +7,6 @@ class User {
   var conPass;
   int helper;
 
-  User({this.fullName, this.userName, this.password, this.conPass, this.helper});
+  User(
+      {this.fullName, this.userName, this.password, this.conPass, this.helper});
 }

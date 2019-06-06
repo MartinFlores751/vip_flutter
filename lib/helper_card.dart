@@ -25,31 +25,29 @@ class _HelperCardState extends State<HelperCard> {
 
   Decoration get helperForegroundOnline {
     if (widget.mapValue['online'])
-      return  null;
+      return null;
     else
       return BoxDecoration(
-              color: Colors.grey,
-              backgroundBlendMode: BlendMode.saturation,
-            );
+        color: Colors.grey,
+        backgroundBlendMode: BlendMode.saturation,
+      );
   }
 
   Decoration get helperOnline {
     return BoxDecoration(
-              border: Border(
-                bottom: BorderSide(width: 1.0, color: Color(0xFFFF000000)),
-              ),
-              color: widget.mapValue['away']
-                  ? _buildColor(1)
-                  : _buildColor(0),
-            );
+      border: Border(
+        bottom: BorderSide(width: 1.0, color: Color(0xFFFF000000)),
+      ),
+      color: widget.mapValue['away'] ? _buildColor(1) : _buildColor(0),
+    );
   }
 
   Decoration get helperOffline {
-  return BoxDecoration(
-              border: Border(
-                bottom: BorderSide(width: 1.0, color: Color(0xFFFF000000)),
-              ),
-              color: _buildColor(2));
+    return BoxDecoration(
+        border: Border(
+          bottom: BorderSide(width: 1.0, color: Color(0xFFFF000000)),
+        ),
+        color: _buildColor(2));
   }
 
   // Helper Cards
@@ -105,8 +103,7 @@ class _HelperCardState extends State<HelperCard> {
     return Container(
       foregroundDecoration: helperForegroundOnline,
       height: MediaQuery.of(context).size.height / 2.5,
-      decoration: widget.mapValue['online']
-          ? helperOnline : helperOffline,
+      decoration: widget.mapValue['online'] ? helperOnline : helperOffline,
       child: ListTile(
         title: Icon(Icons.account_circle, color: Colors.blue, size: 75),
         subtitle: con,

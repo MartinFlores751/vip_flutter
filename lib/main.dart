@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         routes: {
           LoginPage.routeName: (context) => LoginPage(),
           LoggedAcc.routeName: (context) => LoggedAcc(),
-          LoggedAccVIP.routeName : (context) => LoggedAccVIP()
+          LoggedAccVIP.routeName: (context) => LoggedAccVIP()
         });
   }
 }

@@ -22,17 +22,19 @@ class _SignUpState extends State<SignUp> {
   var _conPass = TextEditingController();
   int _rValue1 = -1;
 
-  void _handleValue1(int value)
-  {
-    setState((){
+  void _handleValue1(int value) {
+    setState(() {
       _rValue1 = value;
     });
   }
 
-  Future<dynamic> connect() async{
+  Future<dynamic> connect() async {
     String udid = await FlutterUdid.consistentUdid;
-    if (_fullName.text.length == 0 || _userName.text.length == 0 || _rValue1 == -1 || _password.text.length == 0 || _conPass.text.length == 0)
-    {
+    if (_fullName.text.length == 0 ||
+        _userName.text.length == 0 ||
+        _rValue1 == -1 ||
+        _password.text.length == 0 ||
+        _conPass.text.length == 0) {
       return null;
     }
     Map<String, String> body = {
@@ -48,34 +50,40 @@ class _SignUpState extends State<SignUp> {
     return jsonDecode(response.body);
   }
 
-  void signup() async{
+  void signup() async {
     var response = await connect();
-    if (response == null)
-    {
-      Fluttertoast.showToast(msg: 'Field(s) Empty',toastLength: Toast.LENGTH_SHORT);
+    if (response == null) {
+      Fluttertoast.showToast(
+          msg: 'Field(s) Empty', toastLength: Toast.LENGTH_SHORT);
       return;
-    }
-    else if(response["success"])
-    {
+    } else if (response["success"]) {
       Map<String, dynamic> body = {
-        "${_userName.text}":{
+        "${_userName.text}": {
           "away": false,
           "online": false,
         }
       };
-      Firestore.instance.collection('Users').document('allUsers').updateData(body);
-      if (_rValue1 == 1){
-        Firestore.instance.collection('Users').document('allHelpers').updateData(body);
+      Firestore.instance
+          .collection('Users')
+          .document('allUsers')
+          .updateData(body);
+      if (_rValue1 == 1) {
+        Firestore.instance
+            .collection('Users')
+            .document('allHelpers')
+            .updateData(body);
+      } else {
+        Firestore.instance
+            .collection('Users')
+            .document('allVip')
+            .updateData(body);
       }
-      else{
-        Firestore.instance.collection('Users').document('allVip').updateData(body);
-      }
-      Fluttertoast.showToast(msg: 'Account Created!',toastLength: Toast.LENGTH_SHORT);
+      Fluttertoast.showToast(
+          msg: 'Account Created!', toastLength: Toast.LENGTH_SHORT);
       Navigator.pop(context);
-    }
-    else
-    {
-      Fluttertoast.showToast(msg: '${response["error"]}',toastLength: Toast.LENGTH_SHORT);
+    } else {
+      Fluttertoast.showToast(
+          msg: '${response["error"]}', toastLength: Toast.LENGTH_SHORT);
     }
   }
 
@@ -83,7 +91,10 @@ class _SignUpState extends State<SignUp> {
   Widget build(BuildContext context) {
     var radio = new Column(
       children: <Widget>[
-        Text('Helper:', style: TextStyle(fontSize: 17),),
+        Text(
+          'Helper:',
+          style: TextStyle(fontSize: 17),
+        ),
         new Center(
           child: new Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -120,10 +131,9 @@ class _SignUpState extends State<SignUp> {
             autofocus: false,
             obscureText: false,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-              //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              labelText: 'FullName'
-            ),
+                contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
+                //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                labelText: 'FullName'),
           ),
         ),
         Container(
@@ -139,10 +149,9 @@ class _SignUpState extends State<SignUp> {
             autofocus: false,
             obscureText: false,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-              //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              labelText: 'Username'
-            ),
+                contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
+                //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                labelText: 'Username'),
           ),
         ),
         Container(
@@ -157,10 +166,9 @@ class _SignUpState extends State<SignUp> {
             autofocus: false,
             obscureText: true,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-              //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              labelText: 'Password'
-            ),
+                contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
+                //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                labelText: 'Password'),
           ),
         ),
         Container(
@@ -175,30 +183,26 @@ class _SignUpState extends State<SignUp> {
             autofocus: false,
             obscureText: true,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-              //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              labelText: 'Confirm Pass.'
-            ),
+                contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
+                //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                labelText: 'Confirm Pass.'),
           ),
         ),
       ],
     );
 
-    var created = new Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        FlatButton(
-          child: Text(
-            'Create',
-            style: TextStyle(color: Colors.blue, fontSize: 20),
-          ),
-          onPressed: () {
-            signup();
-          },
-        )
-      ]
-    );
-
+    var created =
+        new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      FlatButton(
+        child: Text(
+          'Create',
+          style: TextStyle(color: Colors.blue, fontSize: 20),
+        ),
+        onPressed: () {
+          signup();
+        },
+      )
+    ]);
 
     return Scaffold(
       resizeToAvoidBottomPadding: false,
@@ -212,7 +216,13 @@ class _SignUpState extends State<SignUp> {
           //padding: EdgeInsets.fromLTRB(0, 70, 0, 0),
           child: Column(
             //mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[SizedBox(height: 30,), signUpCredentials, created],
+            children: <Widget>[
+              SizedBox(
+                height: 30,
+              ),
+              signUpCredentials,
+              created
+            ],
           ),
         ),
       ),
