@@ -371,7 +371,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   Widget get callForHelpButton {
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height / 3 - 1,
+      height: MediaQuery.of(context).size.height / 3.3,
       child: new RaisedButton.icon(
         icon: Icon(
           Icons.phone,
@@ -436,7 +436,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   Widget get vipCountBlock {
     return Container(
       width: MediaQuery.of(context).size.width / 2,
-      height: MediaQuery.of(context).size.height / 3 - 20,
+      height: MediaQuery.of(context).size.height / 3,
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(width: 2.0, color: Color(0xFF000000)),
@@ -487,7 +487,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   Widget get helperCountBlock {
     return Container(
       width: MediaQuery.of(context).size.width / 2,
-      height: MediaQuery.of(context).size.height / 3 - 20,
+      height: MediaQuery.of(context).size.height / 3,
       decoration: BoxDecoration(
         border: Border.all(
           color: Colors.black,
