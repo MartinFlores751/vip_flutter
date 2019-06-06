@@ -9,20 +9,18 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_udid/flutter_udid.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class signUp extends StatefulWidget {
-  String urlBase;
-  signUp(this.urlBase);
-  _signUpState createState() => _signUpState(urlBase);
+class SignUp extends StatefulWidget {
+  final String urlBase;
+  SignUp(this.urlBase);
+  _SignUpState createState() => _SignUpState();
 }
 
-class _signUpState extends State<signUp> {
+class _SignUpState extends State<SignUp> {
   var _fullName = TextEditingController();
   var _userName = TextEditingController();
   var _password = TextEditingController();
   var _conPass = TextEditingController();
   int _rValue1 = -1;
-  String urlBase;
-  _signUpState(this.urlBase);
 
   void _handleValue1(int value)
   {
@@ -45,7 +43,7 @@ class _signUpState extends State<signUp> {
       'c_password': _conPass.text,
       'UUID': udid,
     };
-    var url = urlBase + "/register_user";
+    var url = widget.urlBase + "/register_user";
     var response = await http.post(url, body: body);
     return jsonDecode(response.body);
   }

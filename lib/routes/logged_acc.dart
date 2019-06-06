@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:vip_flutter/settings.dart';
+import 'package:vip_flutter/routes/settings.dart';
 
+// TODO: Remove demo code
 class UserDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -39,20 +40,15 @@ class UserDashboard extends StatelessWidget {
   }
 }
 
-class loggedAcc extends StatefulWidget {
-  String token;
-  loggedAcc(this.token);
-  _loggedAccState createState() => _loggedAccState(this.token);
+class LoggedAcc extends StatefulWidget {
+  static const String routeName = '/helper_home';
+  final String token;
+  LoggedAcc(this.token);
+  _LoggedAccState createState() => _LoggedAccState();
 }
 
-class _loggedAccState extends State<loggedAcc> {
-  String token; //has token retreived from server
-  int _selectedIndex = 0;
-  final _widgetOptions = [
-    Text('Index 0: Helpers'),
-    Text('Index 1: Find New Helpers')];
-
-  _loggedAccState(this.token);
+class _LoggedAccState extends State<LoggedAcc> {
+  int selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +61,9 @@ class _loggedAccState extends State<loggedAcc> {
       }
     );
     
-    void _onItemTapped(int index) {
+    void onItemTapped(int index) {
       setState(() {
-        _selectedIndex = index;
+        selectedIndex = index;
       });
     }
 
@@ -113,9 +109,9 @@ class _loggedAccState extends State<loggedAcc> {
          BottomNavigationBarItem(icon: Icon(Icons.visibility), title: Text('Helpers')),
          BottomNavigationBarItem(icon: Icon(Icons.search), title: Text('Look For New Helpers')),
        ],
-       currentIndex: _selectedIndex,
+       currentIndex: selectedIndex,
        fixedColor: Colors.blueGrey,
-       onTap: _onItemTapped,
+       onTap: onItemTapped,
       ),
     );
   }

@@ -12,62 +12,52 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vip_flutter/routes/logged_acc.dart';
 import 'package:vip_flutter/routes/logged_accVIP.dart';
 
-// TODO: Change this into a DB access file and just make calls then...
-// This probably should not be just a file on its own...
+const String serverURL = 'https://vip-serv.herokuapp.com/api';
+Future<String> udid = FlutterUdid.consistentUdid;
 
-class GoLogin extends StatefulWidget {
-  final String username;
-  final String password;
 
-  GoLogin({this.username, this.password});
-
-  @override
-  _GoLoginState createState() => _GoLoginState(username, password);
-}
-
-class _GoLoginState extends State<GoLogin> {
-  String username;
-  String password;
-
-  _GoLoginState(this.username, this.password);
-
-  String udid;
-  String token;
-  final String urlBase = "https://vip-serv.herokuapp.com/api";
-
-  Future<dynamic> connect() async {
-    udid = await FlutterUdid.consistentUdid;
+// ----------------
+// Ruby Server CRUD
+// ----------------
+Future<dynamic> authenticateUser(String username, String password) async {
     Map<String, String> body = {
       'user': username,
       'password': password,
-      'UUID': udid,
+      'UUID': await udid,
     };
-    var url = urlBase + "/authenticate_user";
-    var response = await http.post(url, body: body);
+
+    var targetURL = serverURL + "/authenticate_user";
+    var response = await http.post(targetURL, body: body);
     return jsonDecode(response.body);
   }
 
-  Future<dynamic> getHelpers() async {
+  Future<dynamic> getHelpers(String token) async {
     Map<String, String> body = {
       "token": token,
-      "UUID": udid,
+      "UUID": await udid,
     };
-    var url = urlBase + "/get_helpers";
-    var response = await http.post(url, body: body);
+
+    var targetURL = serverURL + "/get_helpers";
+    var response = await http.post(targetURL, body: body);
     return jsonDecode(response.body);
   }
 
-  Future<dynamic> getVips() async {
+  Future<dynamic> getVips(String token) async {
     Map<String, String> body = {
       "token": token,
-      "UUID": udid,
+      "UUID": await udid,
     };
-    var url = urlBase + "/get_VIP";
-    var response = await http.post(url, body: body);
+    var targetURL = serverURL + "/get_VIP";
+    var response = await http.post(targetURL, body: body);
     return jsonDecode(response.body);
   }
 
-  Future<Null> _firebaseHelper() async {
+// -------------
+// Firebase CRUD
+// -------------
+
+  // No Idea what this does...
+  Future<Null> _firebaseHelper(String username) async {
     final DocumentReference postRef = Firestore.instance
         .collection("Users")
         .document('OnlineCount');
@@ -102,7 +92,7 @@ class _GoLoginState extends State<GoLogin> {
     });
   }
 
-  Future<Null> _firebaseVip () async {
+  Future<Null> _firebaseVip (String username) async {
     final DocumentReference postRef = Firestore.instance
         .collection("Users")
         .document('OnlineCount');
@@ -136,59 +126,38 @@ class _GoLoginState extends State<GoLogin> {
     });
   }
 
-  Future<Null> _getUserInfo() async {
+  Future<Null> doAuthCRUD(String username, String password) async {
     debugPrint('Getting user info');
 
-    Map response = await connect();
+    Map response = await authenticateUser(username, password);
     bool isSuccess = response['success'];
     if (!isSuccess) {
       Fluttertoast.showToast(
           msg: '${response['error']}', toastLength: Toast.LENGTH_SHORT);
-      Navigator.of(context).pop();
     } else {
       debugPrint(response['isHelper'] ? 'Getting vips...' : 'Getting helpers...');
-      token = response['token'];
+      String token = response['token'];
 
       Map<String, dynamic> resp;
       bool isHelper = response['isHelper'];
       if(isHelper)
-        resp = await getVips();
+        resp = await getVips(token);
       else
-        resp = await getHelpers();
+        resp = await getHelpers(token);
 
       if (!resp['success']) {
         Fluttertoast.showToast(
             msg: '${resp['error']}', toastLength: Toast.LENGTH_SHORT);
-        Navigator.of(context).pop();
       } else {
         debugPrint('About to show data...');
-        List<dynamic> users = jsonDecode(resp['users']);
+        // List<dynamic> users = jsonDecode(resp['users']);
         if(response['isHelper']) {
-          await _firebaseHelper();
-          setState(() {
-            main = LoggedAcc(token);
-          });
+          await _firebaseHelper(username);
+          // TODO: Take to helper page
         } else {
-          await _firebaseVip();
-          setState(() {
-            main = LoggedAccVIP(token, users, username);
-          });
+          await _firebaseVip(username);
+          // TODO: Take to VIP page
         }
       }
     }
   }
-
-  Widget main = Center(child: CircularProgressIndicator());
-
-  @override void initState() {
-    super.initState();
-    _getUserInfo();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: main,
-    );
-  }
-}
