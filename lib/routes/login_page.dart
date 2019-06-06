@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +9,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:vip_flutter/routes/sign_up.dart';
 import 'package:vip_flutter/db_crud.dart';
-
+import 'package:vip_flutter/routes/logged_acc.dart';
+import 'package:vip_flutter/routes/logged_accVIP.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key}) : super(key: key);
@@ -21,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   var _username = TextEditingController();
   var _password = TextEditingController();
+  bool isValidating = false;
 
   Widget mainView;
 
@@ -49,8 +53,7 @@ class _LoginPageState extends State<LoginPage> {
           prefixText: ' ',
         ),
         validator: (value) {
-          if(value.length == 0)
-            return 'Please input a valid username!';
+          if (value.length == 0) return 'Please input a valid username!';
         },
       ),
     );
@@ -78,8 +81,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             suffixStyle: const TextStyle(color: Colors.green)),
         validator: (value) {
-          if (value.length == 0)
-            return 'Please input a valid password!';
+          if (value.length == 0) return 'Please input a valid password!';
         },
       ),
     );
@@ -95,13 +97,30 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future _validateForm() async {
+  Future<Null> _validateForm() async {
+    setState(() {
+      isValidating = true;
+    });
     if (_formKey.currentState.validate()) {
-      await doAuthCRUD(_username.text, _password.text);
+      Map<String, dynamic> results =
+          await doAuthCRUD(_username.text, _password.text);
+      if (results['isSuccess']) {
+        if (results['isHelper']) {
+          List<String> argumentList = [results['token'], _username.text];
+          Navigator.of(context)
+              .pushNamed(LoggedAccVIP.routeName, arguments: argumentList);
+        } else {
+          Navigator.of(context)
+              .pushNamed(LoggedAcc.routeName, arguments: results['token']);
+        }
+      }
     } else {
       Fluttertoast.showToast(
           msg: 'Field(s) Empty', toastLength: Toast.LENGTH_SHORT);
     }
+    setState(() {
+      isValidating = false;
+    });
   }
 
   Widget get _newUserText {
@@ -164,13 +183,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
-  void initState(){
-    super.initState();
-    mainView = _loginForm;
-  }
-
-  @override
   Widget build(BuildContext context) {
+    mainView = isValidating ? CircularProgressIndicator() : _loginForm;
+
     return Scaffold(
       body: Center(child: mainView),
     );

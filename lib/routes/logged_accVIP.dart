@@ -14,17 +14,14 @@ import 'package:vip_flutter/webrtc_components/signaling.dart';
 
 class LoggedAccVIP extends StatefulWidget {
   static const String routeName = '/vip_home';
-  final String token;
-  final List<dynamic> allhelpers;
-  final String uName;
-
-  LoggedAccVIP(this.token, this.allhelpers, this.uName);
+  LoggedAccVIP();
 
   _LoggedAccVIPState createState() => _LoggedAccVIPState();
 }
 
 class _LoggedAccVIPState extends State<LoggedAccVIP>
     with WidgetsBindingObserver {
+  List<String> args;
   String urlBase = "https://vip-serv.herokuapp.com/api";
   int _selectedIndex = 0;
 
@@ -174,7 +171,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
         // Firestore stuff...
         Map<String, dynamic> bodyCha = {
-          "${widget.uName}": {
+          "${args[1]}": {
             "away": true,
             "online": true,
           }
@@ -203,7 +200,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
         // Firebase call
         Map<String, dynamic> bodyCha = {
-          "${widget.uName}": {
+          "${args[1]}": {
             "away": false,
             "online": true,
           }
@@ -249,7 +246,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           }
         });
         Map<String, dynamic> bodyCha = {
-          "${widget.uName}": {
+          "${args[1]}": {
             "away": false,
             "online": false,
           }
@@ -283,7 +280,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         print("Resuming");
 
         Map<String, dynamic> bodyCha = {
-          "${widget.uName}": {
+          "${args[1]}": {
             "away": false,
             "online": true,
           }
@@ -607,7 +604,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
                 children: [
                   accountIcon,
                   Text(
-                    widget.uName,
+                    args[1],
                     style: new TextStyle(fontSize: 20, color: Colors.white),
                   ),
                 ],
@@ -633,7 +630,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
                     });
                   }
                   Map<String, dynamic> body = {
-                    "${widget.uName}": {
+                    "${args[1]}": {
                       "away": false,
                       "online": false,
                     }
@@ -700,6 +697,8 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
   @override
   Widget build(BuildContext context) {
+    args = ModalRoute.of(context).settings.arguments;
+
     // Put this into a seperate function that'll handle states better
     if (_lastLifecycleState != null) {
       switch (_lastLifecycleState) {
