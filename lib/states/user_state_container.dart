@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 import 'package:vip_flutter/states/user_state.dart';
 import 'package:vip_flutter/webrtc_components/signaling.dart';
 
@@ -84,12 +85,9 @@ class _UserContainerState extends State<UserContainer> {
         }
       });
 
-      // ?
       state.signaling.onPeersUpdate = ((event) {
-        this.setState(() {
-          state.selfId = event['self'];
-          state.peers = event['peers'];
-        });
+        state.selfId = event['self'];
+        state.peers = event['peers'];
       });
 
       // On local image?
@@ -109,10 +107,21 @@ class _UserContainerState extends State<UserContainer> {
     }
   }
 
-  invitePeer(context, peerId, useScreen) async {
+  _invitePeer(context, peerId, useScreen) async {
     if (state.signaling != null && peerId != state.selfId) {
       state.signaling.invite(peerId, 'video', useScreen);
     }
+  }
+
+  callUser(String username) async {
+    // TODO: Write better code for this!!!
+    debugPrint(state.peers.toString());
+    state.peers?.forEach((peer) {
+      Map<String, dynamic> p = peer;
+      if (p['name'] == username) {
+        _invitePeer(context, p['id'], false);
+      }
+    });
   }
 
   hangUp() {
