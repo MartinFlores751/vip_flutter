@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:vip_flutter/states/user_state_container.dart';
+
 // Note: This could be a stateless widget, but we can change that later...
 
 class HelperCard extends StatefulWidget {
@@ -85,8 +87,7 @@ class _HelperCardState extends State<HelperCard> {
                   color: Colors.blue,
                   icon: Icon(Icons.videocam),
                   onPressed: () {
-                    // TODO: Make the signalling stuff its own state!!!
-                    //_invitePeer(context, peer['id'], false);
+                    UserContainer.of(context).callUser(widget.mapKey);
                   },
                 ),
                 IconButton(
