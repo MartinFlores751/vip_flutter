@@ -1,12 +1,7 @@
 class User {
-  int userId;
-  int id;
-  var fullName;
-  var userName;
-  var password;
-  var conPass;
-  int helper;
+  String userName;
+  String token;
+  bool isHelper;
 
-  User(
-      {this.fullName, this.userName, this.password, this.conPass, this.helper});
+  User({this.userName, this.token, this.isHelper});
 }

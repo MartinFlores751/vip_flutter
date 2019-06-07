@@ -10,7 +10,9 @@ import 'package:flutter_webrtc/webrtc.dart';
 import 'package:vip_flutter/helper_list.dart';
 
 import 'package:vip_flutter/routes/settings.dart';
-import 'package:vip_flutter/webrtc_components/signaling.dart';
+import 'package:vip_flutter/states/user_state_container.dart';
+import 'package:vip_flutter/db_crud.dart';
+import 'package:vip_flutter/user_class.dart';
 
 class LoggedAccVIP extends StatefulWidget {
   static const String routeName = '/vip_home';
@@ -21,117 +23,11 @@ class LoggedAccVIP extends StatefulWidget {
 
 class _LoggedAccVIPState extends State<LoggedAccVIP>
     with WidgetsBindingObserver {
-  List<String> args;
-  String urlBase = "https://vip-serv.herokuapp.com/api";
+  User user;
   int _selectedIndex = 0;
 
   // Life cycle for the current widget.
   AppLifecycleState _lastLifecycleState;
-
-  // ------------
-  // WebRTC Stuff
-  // ------------
-
-  // TODO: Move the WebRTC stuff into a global class state that is above both logged_accs
-
-  final String serverIP = "129.113.228.50"; //Use Webrtc
-  bool _inCalling = false; //Use Webrtc
-  Signaling _signaling; //Use Webrtc
-  var _selfId; //Use Webrtc
-  List<dynamic> _peers; //Use Webrtc
-  RTCVideoRenderer _localRenderer = new RTCVideoRenderer(); //Use Webrtc
-  RTCVideoRenderer _remoteRenderer = new RTCVideoRenderer(); //Use Webrtc
-
-  // Create the two renderers for the VIP
-  initRenderers() async {
-    // Only one of these are needed!
-    await _localRenderer.initialize();
-    await _remoteRenderer.initialize();
-  }
-
-  // When the Widget gets closed
-  @override
-  deactivate() {
-    super.deactivate();
-    if (_signaling != null) _signaling.close();
-    _localRenderer.dispose();
-    _remoteRenderer.dispose();
-  }
-
-  void _connect() async {
-    // If not signalling to the server, perform setup
-    if (_signaling == null) {
-      _signaling = new Signaling('ws://' + serverIP + ':4442', "Waddup")
-        ..connect();
-
-      // Customize these options to be able to control how the client reacts to the server state
-      _signaling.onStateChange = (SignalingState state) {
-        switch (state) {
-          case SignalingState.CallStateNew:
-            this.setState(() {
-              _inCalling = true;
-            });
-            break;
-          case SignalingState.CallStateBye:
-            this.setState(() {
-              _localRenderer.srcObject = null;
-              _remoteRenderer.srcObject = null;
-              _inCalling = false;
-            });
-            break;
-          case SignalingState.CallStateInvite:
-          case SignalingState.CallStateConnected:
-          case SignalingState.CallStateRinging:
-          case SignalingState.ConnectionClosed:
-          case SignalingState.ConnectionError:
-          case SignalingState.ConnectionOpen:
-            break;
-        }
-      };
-
-      // ?
-      _signaling.onPeersUpdate = ((event) {
-        this.setState(() {
-          _selfId = event['self'];
-          _peers = event['peers'];
-        });
-      });
-
-      // On local image?
-      _signaling.onLocalStream = ((stream) {
-        _localRenderer.srcObject = stream;
-      });
-
-      // Most likely on remote image
-      _signaling.onAddRemoteStream = ((stream) {
-        _remoteRenderer.srcObject = stream;
-      });
-
-      // Disconnect from stream!
-      _signaling.onRemoveRemoteStream = ((stream) {
-        _remoteRenderer.srcObject = null;
-      });
-    }
-  }
-
-  _invitePeer(context, peerId, use_screen) async {
-    if (_signaling != null && peerId != _selfId) {
-      _signaling.invite(peerId, 'video', use_screen);
-    }
-  }
-
-  _hangUp() {
-    if (_signaling != null) {
-      _signaling.bye();
-    }
-  }
-
-  _switchCamera() {
-    _signaling.switchCamera();
-  }
-
-  // Mute mic should probably be imlemented...
-  _muteMic() {}
 
   // ------------
   // Widget Stuff
@@ -140,9 +36,14 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   @override
   void initState() {
     super.initState();
-    initRenderers(); // Create the rendering objects!
-    _connect(); // Connect to the signalling server
     WidgetsBinding.instance.addObserver(this); // Not sure what this does...
+  }
+
+  @override
+  void didChangeDependencies(){
+    super.didChangeDependencies();
+    UserContainer.of(context).initRenderers(); // Create the rendering objects!
+    UserContainer.of(context).connect(); // Connect to the signalling server
   }
 
   @override
@@ -171,7 +72,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
         // Firestore stuff...
         Map<String, dynamic> bodyCha = {
-          "${args[1]}": {
+          "${user.userName}": {
             "away": true,
             "online": true,
           }
@@ -190,8 +91,8 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         };
 
         // Personal Server Stuff...
-        var url = urlBase + "/set_status";
-        var response = await http.post(url, body: body);
+        var url = serverURL + "/set_status";
+        await http.post(url, body: body);
 
         // Recursive call
         checkPaused(i + 1);
@@ -200,7 +101,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
         // Firebase call
         Map<String, dynamic> bodyCha = {
-          "${args[1]}": {
+          "${user.userName}": {
             "away": false,
             "online": true,
           }
@@ -219,8 +120,8 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         };
 
         // Call to personal server...
-        var url = urlBase + "/set_status";
-        var response = await http.post(url, body: body);
+        var url = serverURL + "/set_status";
+        await http.post(url, body: body);
         return;
       }
     }
@@ -246,7 +147,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           }
         });
         Map<String, dynamic> bodyCha = {
-          "${args[1]}": {
+          "${user.userName}": {
             "away": false,
             "online": false,
           }
@@ -264,8 +165,8 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         Map<String, String> body = {
           "status": '2',
         };
-        var url = urlBase + "/set_status";
-        var response = await http.post(url, body: body);
+        var url = serverURL + "/set_status";
+        await http.post(url, body: body);
       }
       // Exit regardless?
       exit(0); // Does this cause the application to shutdown?
@@ -280,7 +181,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         print("Resuming");
 
         Map<String, dynamic> bodyCha = {
-          "${args[1]}": {
+          "${user.userName}": {
             "away": false,
             "online": true,
           }
@@ -297,8 +198,8 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         Map<String, String> body = {
           "status": '0',
         };
-        var url = urlBase + "/set_status";
-        var response = await http.post(url, body: body);
+        var url = serverURL + "/set_status";
+        await http.post(url, body: body);
         return;
       }
     }
@@ -308,14 +209,14 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   // Refactored Bulid Stuff
   // ----------------------
   Widget get vipAppBar {
-    if (_inCalling)
+    if (UserContainer.of(context).state.inCalling)
       return null;
     else
       return AppBar(title: Text(''));
   }
 
   Widget get callButtons {
-    if (_inCalling)
+    if (UserContainer.of(context).state.inCalling)
       return SizedBox(
           width: 200.0,
           child: new Row(
@@ -323,17 +224,17 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
               children: <Widget>[
                 FloatingActionButton(
                   child: const Icon(Icons.switch_camera),
-                  onPressed: _switchCamera,
+                  onPressed: UserContainer.of(context).switchCamera,
                 ),
                 FloatingActionButton(
-                  onPressed: _hangUp,
+                  onPressed: UserContainer.of(context).hangUp,
                   tooltip: 'Hangup',
                   child: new Icon(Icons.call_end),
                   backgroundColor: Colors.pink,
                 ),
                 FloatingActionButton(
                   child: const Icon(Icons.mic_off),
-                  onPressed: _muteMic,
+                  onPressed: UserContainer.of(context).muteMic,
                 )
               ]));
     else
@@ -558,7 +459,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   }
 
   Widget get vipAppBody {
-    if (_inCalling)
+    if (UserContainer.of(context).state.inCalling)
       return OrientationBuilder(builder: (context, orientation) {
         return new Container(
           child: new Stack(children: <Widget>[
@@ -571,7 +472,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
                   margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
-                  child: new RTCVideoView(_remoteRenderer),
+                  child: new RTCVideoView(UserContainer.of(context).state.remoteRenderer),
                   decoration: new BoxDecoration(color: Colors.black54),
                 )),
             new Positioned(
@@ -580,7 +481,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
               child: new Container(
                 width: orientation == Orientation.portrait ? 90.0 : 120.0,
                 height: orientation == Orientation.portrait ? 120.0 : 90.0,
-                child: new RTCVideoView(_localRenderer),
+                child: new RTCVideoView(UserContainer.of(context).state.localRenderer),
                 decoration: new BoxDecoration(color: Colors.black54),
               ),
             ),
@@ -592,7 +493,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   }
 
   Widget get vipDrawer {
-    if (_inCalling)
+    if (UserContainer.of(context).state.inCalling)
       return null;
     else
       return Drawer(
@@ -604,7 +505,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
                 children: [
                   accountIcon,
                   Text(
-                    args[1],
+                    user.userName,
                     style: new TextStyle(fontSize: 20, color: Colors.white),
                   ),
                 ],
@@ -630,7 +531,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
                     });
                   }
                   Map<String, dynamic> body = {
-                    "${args[1]}": {
+                    "${user.userName}": {
                       "away": false,
                       "online": false,
                     }
@@ -679,7 +580,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   }
 
   Widget get vipNavBar {
-    if (_inCalling)
+    if (UserContainer.of(context).state.inCalling)
       return null;
     else
       return BottomNavigationBar(
@@ -697,7 +598,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
   @override
   Widget build(BuildContext context) {
-    args = ModalRoute.of(context).settings.arguments;
+    user = ModalRoute.of(context).settings.arguments;
 
     // Put this into a seperate function that'll handle states better
     if (_lastLifecycleState != null) {
