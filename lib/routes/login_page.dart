@@ -11,6 +11,7 @@ import 'package:vip_flutter/routes/sign_up.dart';
 import 'package:vip_flutter/db_crud.dart';
 import 'package:vip_flutter/routes/logged_acc.dart';
 import 'package:vip_flutter/routes/logged_accVIP.dart';
+import 'package:vip_flutter/user_class.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key}) : super(key: key);
@@ -105,13 +106,14 @@ class _LoginPageState extends State<LoginPage> {
       Map<String, dynamic> results =
           await doAuthCRUD(_username.text, _password.text);
       if (results['isSuccess']) {
-        if (results['isHelper']) {
-          List<String> argumentList = [results['token'], _username.text];
+        results['user'].userName = _username.text;
+        User arg = results['user'];
+        if (results['user'].isHelper) {
           Navigator.of(context)
-              .pushNamed(LoggedAccVIP.routeName, arguments: argumentList);
+              .pushNamed(LoggedAccVIP.routeName, arguments: arg);
         } else {
           Navigator.of(context)
-              .pushNamed(LoggedAcc.routeName, arguments: results['token']);
+              .pushNamed(LoggedAcc.routeName, arguments: arg);
         }
       }
     } else {

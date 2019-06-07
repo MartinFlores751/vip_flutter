@@ -52,8 +52,6 @@ class _LoggedAccState extends State<LoggedAcc> {
 
   @override
   Widget build(BuildContext context) {
-    final String token = ModalRoute.of(context).settings.arguments;
-
     var accIcon = IconButton(
         icon: Icon(Icons.account_box),
         color: Colors.white,

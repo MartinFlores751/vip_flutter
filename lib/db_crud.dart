@@ -5,12 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:http/http.dart' as http;
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_udid/flutter_udid.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:vip_flutter/routes/logged_acc.dart';
-import 'package:vip_flutter/routes/logged_accVIP.dart';
+import 'package:vip_flutter/user_class.dart';
+
 
 const String serverURL = 'https://vip-serv.herokuapp.com/api';
 Future<String> udid = FlutterUdid.consistentUdid;
@@ -120,8 +119,7 @@ Future<Map<String, dynamic>> doAuthCRUD(
   Map<String, dynamic> results = {
     'isSuccess': false,
     'error': '',
-    'token': '',
-    'isHelper': false,
+    'user': User(),
   };
 
   debugPrint('Getting user info');
@@ -148,15 +146,15 @@ Future<Map<String, dynamic>> doAuthCRUD(
     } else {
       debugPrint('About to show data...');
       results['isSuccess'] = true;
-      results['token'] = token;
+      results['user'].token = token;
       // List<dynamic> users = jsonDecode(resp['users']);
       if (response['isHelper']) {
         await _firebaseHelper(username);
-        results['isHelper'] = true;
+        results['user'].isHelper = true;
         return results;
       } else {
         await _firebaseVip(username);
-        results['isHelper'] = true;
+        results['user'].isHelper = true;
         return results;
       }
     }
