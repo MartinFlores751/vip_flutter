@@ -110,10 +110,10 @@ class _LoginPageState extends State<LoginPage> {
         User arg = results['user'];
         if (results['user'].isHelper) {
           Navigator.of(context)
-              .pushNamed(LoggedAccVIP.routeName, arguments: arg);
+              .pushNamed(LoggedAcc.routeName, arguments: arg);
         } else {
           Navigator.of(context)
-              .pushNamed(LoggedAcc.routeName, arguments: arg);
+              .pushNamed(LoggedAccVIP.routeName, arguments: arg);
         }
       }
     } else {

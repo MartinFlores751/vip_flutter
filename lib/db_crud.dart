@@ -154,7 +154,7 @@ Future<Map<String, dynamic>> doAuthCRUD(
         return results;
       } else {
         await _firebaseVip(username);
-        results['user'].isHelper = true;
+        results['user'].isHelper = false;
         return results;
       }
     }
