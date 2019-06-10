@@ -24,7 +24,7 @@ Future<dynamic> authenticateUser(String username, String password) async {
     'UUID': await udid,
   };
 
-  var targetURL = serverURL + "/authenticate_user";
+  String targetURL = serverURL + "/authenticate_user";
   var response = await http.post(targetURL, body: body);
   return jsonDecode(response.body);
 }
