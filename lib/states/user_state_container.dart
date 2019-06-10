@@ -61,12 +61,15 @@ class _UserContainerState extends State<UserContainer> {
       // Customize these options to be able to control how the client reacts to the server state
       state.signaling.onStateChange = ((SignalingState currentSignal) {
         switch (currentSignal) {
+          // When call Actually goes through
           case SignalingState.CallStateNew:
             debugPrint('New call');
             this.setState(() {
               state.inCalling = true;
             });
             break;
+
+          // When the call ends
           case SignalingState.CallStateBye:
             debugPrint('Call ended');
             this.setState(() {
@@ -75,9 +78,15 @@ class _UserContainerState extends State<UserContainer> {
               state.inCalling = false;
             });
             break;
+
+          // When the VIP is making a call
           case SignalingState.CallStateInvite:
+            debugPrint('Making a call...');
+            break;
           case SignalingState.CallStateConnected:
           case SignalingState.CallStateRinging:
+            debugPrint('Incomming call...');
+            break;
           case SignalingState.ConnectionClosed:
           case SignalingState.ConnectionError:
           case SignalingState.ConnectionOpen:
