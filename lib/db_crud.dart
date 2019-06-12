@@ -11,7 +11,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vip_flutter/user_class.dart';
 
 
-const String serverURL = 'https://vip-serv.herokuapp.com/api';
+// https://vip-serv.herokuapp.com/api
+const String serverURL = '129.113.228.50:4567';
 Future<String> udid = FlutterUdid.consistentUdid;
 
 // ----------------
@@ -24,8 +25,9 @@ Future<dynamic> authenticateUser(String username, String password) async {
     'UUID': await udid,
   };
 
-  String targetURL = serverURL + "/authenticate_user";
-  var response = await http.post(targetURL, body: body);
+  String unencodedPath = "/api/authenticate_user";
+  Uri target = Uri.http(serverURL, unencodedPath);
+  http.Response response = await http.post(target, body: body);
   return jsonDecode(response.body);
 }
 
@@ -35,8 +37,9 @@ Future<dynamic> getHelpers(String token) async {
     "UUID": await udid,
   };
 
-  var targetURL = serverURL + "/get_helpers";
-  var response = await http.post(targetURL, body: body);
+  String unencodedPath = "/api/get_helpers";
+  Uri target = Uri.http(serverURL, unencodedPath);
+  http.Response response = await http.post(target, body: body);
   return jsonDecode(response.body);
 }
 
@@ -45,8 +48,11 @@ Future<dynamic> getVips(String token) async {
     "token": token,
     "UUID": await udid,
   };
-  var targetURL = serverURL + "/get_VIP";
-  var response = await http.post(targetURL, body: body);
+  String unencodedPath = "/api/get_VIP";
+  Uri target = Uri.http(serverURL, unencodedPath);
+  http.Response response = await http.post(target, body: body);
+  return jsonDecode(response.body);
+}
   return jsonDecode(response.body);
 }
 
