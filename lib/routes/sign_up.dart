@@ -45,8 +45,9 @@ class _SignUpState extends State<SignUp> {
       'c_password': _conPass.text,
       'UUID': udid,
     };
-    var url = widget.urlBase + "/register_user";
-    var response = await http.post(url, body: body);
+    String unendodedPath = "/api/register_user";
+    Uri target = Uri.http(widget.urlBase, unendodedPath);
+    var response = await http.post(target, body: body);
     return jsonDecode(response.body);
   }
 

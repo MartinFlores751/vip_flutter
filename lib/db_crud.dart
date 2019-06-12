@@ -10,6 +10,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:vip_flutter/user_class.dart';
 
+enum Status {
+  offline, away, online
+}
 
 // https://vip-serv.herokuapp.com/api
 const String serverURL = '129.113.228.50:4567';
@@ -53,6 +56,44 @@ Future<dynamic> getVips(String token) async {
   http.Response response = await http.post(target, body: body);
   return jsonDecode(response.body);
 }
+
+Future<dynamic> setStatus(String token, Status status) async {
+  String unencodedPath = "/api/set_status";
+  Uri target = Uri.http(serverURL, unencodedPath);
+  String statusValue;
+
+  switch(status){
+    case Status.online:
+      statusValue = '2';
+      break;
+    case Status.away:
+      statusValue = '1';
+      break;
+    case Status.offline:
+      statusValue = '0';
+      break;
+  }
+  
+  Map<String, String> body = {
+    "token": token,
+    "UUID": await udid,
+    "status": statusValue
+  };
+
+  http.Response response = await http.post(target, body: body);
+  return jsonDecode(response.body);
+}
+
+Future<dynamic> getFavorites(String token, bool isHelper) async {
+  String unencodedPath = "";
+  Uri target = Uri.http(serverURL, unencodedPath);
+  Map <String, String> body = {
+    "token": token,
+    "UUID": await udid,
+    "isHelper": isHelper.toString()
+  };
+
+  http.Response response = await http.post(target, body: body);
   return jsonDecode(response.body);
 }
 
@@ -156,10 +197,12 @@ Future<Map<String, dynamic>> doAuthCRUD(
       // List<dynamic> users = jsonDecode(resp['users']);
       if (response['isHelper']) {
         await _firebaseHelper(username);
+        await setStatus(token, Status.online);
         results['user'].isHelper = true;
         return results;
       } else {
         await _firebaseVip(username);
+        await setStatus(token, Status.online);
         results['user'].isHelper = false;
         return results;
       }

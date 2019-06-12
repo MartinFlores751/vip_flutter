@@ -40,7 +40,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   }
 
   @override
-  void didChangeDependencies(){
+  void didChangeDependencies() {
     super.didChangeDependencies();
     UserContainer.of(context).initRenderers(); // Create the rendering objects!
     UserContainer.of(context).connect(); // Connect to the signalling server
@@ -70,6 +70,9 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           _lastLifecycleState == AppLifecycleState.inactive) {
         debugPrint("Going Away");
 
+        setStatus(
+            UserContainer.of(context).state.currentUser.token, Status.away);
+
         // Firestore stuff...
         Map<String, dynamic> bodyCha = {
           "${user.userName}": {
@@ -98,6 +101,9 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         checkPaused(i + 1);
       } else {
         print("Resuming");
+
+        setStatus(
+            UserContainer.of(context).state.currentUser.token, Status.online);
 
         // Firebase call
         Map<String, dynamic> bodyCha = {
@@ -131,6 +137,9 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
       if (_lastLifecycleState == AppLifecycleState.paused ||
           _lastLifecycleState == AppLifecycleState.inactive) {
         print("Logging Out");
+
+        setStatus(
+            UserContainer.of(context).state.currentUser.token, Status.offline);
 
         // Firebase
         final DocumentReference postRef =
@@ -472,7 +481,8 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
                   margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
-                  child: new RTCVideoView(UserContainer.of(context).state.remoteRenderer),
+                  child: new RTCVideoView(
+                      UserContainer.of(context).state.remoteRenderer),
                   decoration: new BoxDecoration(color: Colors.black54),
                 )),
             new Positioned(
@@ -481,7 +491,8 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
               child: new Container(
                 width: orientation == Orientation.portrait ? 90.0 : 120.0,
                 height: orientation == Orientation.portrait ? 120.0 : 90.0,
-                child: new RTCVideoView(UserContainer.of(context).state.localRenderer),
+                child: new RTCVideoView(
+                    UserContainer.of(context).state.localRenderer),
                 decoration: new BoxDecoration(color: Colors.black54),
               ),
             ),
@@ -517,6 +528,9 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
             ListTile(
               title: Text('Log Out'),
               onTap: () {
+                setStatus(UserContainer.of(context).state.currentUser.token,
+                    Status.offline);
+
                 final DocumentReference postRef = Firestore.instance
                     .collection("Users")
                     .document('OnlineCount');
@@ -613,6 +627,11 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         case AppLifecycleState.paused:
           debugPrint("Paused");
           checkPaused(0); //THIS ONE
+          break;
+        case AppLifecycleState.suspending:
+          debugPrint("Logging out");
+          setStatus(UserContainer.of(context).state.currentUser.token,
+              Status.offline);
           break;
         default:
           debugPrint("Don't care");
