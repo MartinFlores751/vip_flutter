@@ -3,19 +3,28 @@ import 'package:vip_flutter/user_class.dart';
 import 'package:vip_flutter/webrtc_components/signaling.dart';
 
 class UserState {
-  static const String WebRTCServer = '129.113.228.50';
+  static const String WebRTCServer = '192.168.1.127';
   User currentUser;
   bool inCalling;
   Signaling signaling;
   var selfId;
   List<dynamic> peers;
-  final RTCVideoRenderer localRenderer = RTCVideoRenderer(); //Use Webrtc
-  final RTCVideoRenderer remoteRenderer = RTCVideoRenderer(); //Use Webrtc
+  RTCVideoRenderer localRenderer; //Use Webrtc
+  RTCVideoRenderer remoteRenderer; //Use Webrtc
 
-  UserState({this.currentUser, this.inCalling, this.signaling});
+  UserState(
+      {this.currentUser,
+      this.inCalling,
+      this.signaling,
+      this.localRenderer,
+      this.remoteRenderer});
 
   factory UserState.initialize(User user) {
-    return UserState(currentUser: user, inCalling: false);
+    return UserState(
+        currentUser: user,
+        inCalling: false,
+        localRenderer: RTCVideoRenderer(),
+        remoteRenderer: RTCVideoRenderer());
   }
 
   @override

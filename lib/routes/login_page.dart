@@ -12,6 +12,7 @@ import 'package:vip_flutter/db_crud.dart';
 import 'package:vip_flutter/routes/logged_acc.dart';
 import 'package:vip_flutter/routes/logged_accVIP.dart';
 import 'package:vip_flutter/user_class.dart';
+import 'package:vip_flutter/states/user_state_container.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key}) : super(key: key);
@@ -109,11 +110,13 @@ class _LoginPageState extends State<LoginPage> {
         results['user'].userName = _username.text;
         User arg = results['user'];
         if (results['user'].isHelper) {
-          Navigator.of(context)
-              .pushNamed(LoggedAcc.routeName, arguments: arg);
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) =>
+                  UserContainer(user: arg, child: LoggedAcc())));
         } else {
-          Navigator.of(context)
-              .pushNamed(LoggedAccVIP.routeName, arguments: arg);
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) =>
+                  UserContainer(user: arg, child: LoggedAccVIP())));
         }
       }
     } else {

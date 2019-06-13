@@ -4,7 +4,8 @@ import 'package:vip_flutter/helper_list.dart';
 
 //function that sets online status
 //vipOrHelper should be either 'allVip' or 'allHelpers'
-void firestoreUpdateVIP(String userName, bool away, bool online, String vipOrHelper){
+void firestoreUpdateVIP(
+    String userName, bool away, bool online, String vipOrHelper) {
   Map<String, dynamic> bodyCha = {
     "$userName": {
       "away": away,
@@ -23,7 +24,7 @@ void firestoreUpdateVIP(String userName, bool away, bool online, String vipOrHel
 
 //function that adds or subtracts to the total online if someone logs in or logs out
 //vipOrHelper should be either 'VipOnline' or 'HelpersOnline'
-void firestoreRunTransaction(int addOrSub, String vipOrHelper){
+void firestoreRunTransaction(int addOrSub, String vipOrHelper) {
   final DocumentReference postRef =
       Firestore.instance.collection("Users").document('OnlineCount');
   Firestore.instance.runTransaction((Transaction tx) async {
@@ -42,45 +43,42 @@ void firestoreRunTransaction(int addOrSub, String vipOrHelper){
 //whoToChange has to be 1 of 3: 'HelpersOnline', 'VipOnline', or 'TotalOnline'
 //the variable 'total' checks if TotalOnline is the one that will change
 //fonSize is the fontSize for the Online Blocks
-Widget streamsForOnlineBlocks(bool total, String whoToChange, double fonSize){
+Widget streamsForOnlineBlocks(bool total, String whoToChange, double fonSize) {
   return StreamBuilder<DocumentSnapshot>(
     stream: Firestore.instance
         .collection('Users')
         .document('OnlineCount')
         .snapshots(),
-    builder: (BuildContext context,
-        AsyncSnapshot<DocumentSnapshot> snapshot) {
-      if (snapshot.hasError)
-        return new Text('Error: ${snapshot.error}');
+    builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+      if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
       switch (snapshot.connectionState) {
         case ConnectionState.waiting:
           return CircularProgressIndicator();
         default:
           var a = snapshot.data;
           return Center(
-            child: total ? 
-              Text(
-                "Total Online: ${a[whoToChange]}",
-                style: TextStyle(fontSize: fonSize),
-              ) : 
-              Text(
-                "${a[whoToChange]}",
-                style: TextStyle(fontSize: fonSize),
-              ),
+            child: total
+                ? Text(
+                    "Total Online: ${a[whoToChange]}",
+                    style: TextStyle(fontSize: fonSize),
+                  )
+                : Text(
+                    "${a[whoToChange]}",
+                    style: TextStyle(fontSize: fonSize),
+                  ),
           );
       }
     },
   );
 }
 
-Widget streamForUsersOnline(){
+Widget streamForUsersOnline() {
   return StreamBuilder<DocumentSnapshot>(
     stream: Firestore.instance
         .collection('Users')
         .document('allHelpers')
         .snapshots(),
-    builder:
-        (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+    builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
       if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
       switch (snapshot.connectionState) {
         case ConnectionState.waiting:

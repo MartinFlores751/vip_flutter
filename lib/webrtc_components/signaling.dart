@@ -142,6 +142,7 @@ class Signaling {
     var data = mapData['data'];
 
     switch (mapData['type']) {
+
       /// Updates the list of peers and calls [onPeersUpdate(event)] callback.
       case 'peers':
         {
@@ -154,6 +155,7 @@ class Signaling {
           }
         }
         break;
+
       /// Connects current user to sender of the offer with the type based on [media].
       case 'offer':
         {
@@ -175,6 +177,7 @@ class Signaling {
           });
         }
         break;
+
       /// Connects to other user after offer is accepted.
       case 'answer':
         {
