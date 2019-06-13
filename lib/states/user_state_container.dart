@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:vip_flutter/routes/conversation_page.dart';
 
 import 'package:vip_flutter/states/user_state.dart';
 import 'package:vip_flutter/webrtc_components/signaling.dart';
@@ -161,9 +162,17 @@ class _UserContainerState extends State<UserContainer> {
 
   @override
   Widget build(BuildContext context) {
+    Widget toBuild;
+
+    // This only works if on the main page!!!
+    if (state.inCalling)
+      toBuild = ConversationPage();
+    else
+      toBuild = widget.child;
+    
     return _InheritedStateContainer(
       data: this,
-      child: widget.child,
+      child: toBuild,
     );
   }
 }
