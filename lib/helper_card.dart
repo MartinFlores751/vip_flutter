@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:vip_flutter/states/user_state_container.dart';
+import 'package:vip_flutter/db_crud.dart';
 
 // Note: This could be a stateless widget, but we can change that later...
 
 class HelperCard extends StatefulWidget {
-  final String mapKey;
+  final String username;
   final dynamic mapValue;
-  HelperCard({this.mapKey, this.mapValue});
+  HelperCard({this.username, this.mapValue});
 
   @override
   _HelperCardState createState() => _HelperCardState();
@@ -58,7 +59,7 @@ class _HelperCardState extends State<HelperCard> {
         height: 180,
         child: Column(
           children: <Widget>[
-            Text("${widget.mapKey}",
+            Text("${widget.username}",
                 style: TextStyle(
                     color: Colors.black,
                     fontSize: 40.0,
@@ -80,14 +81,19 @@ class _HelperCardState extends State<HelperCard> {
                   iconSize: 75,
                   color: Colors.purple,
                   icon: Icon(Icons.person_add),
-                  onPressed: () {},
+                  onPressed: () {
+                    debugPrint('Adding to favorites!');
+                    addFavorite(
+                        UserContainer.of(context).state.currentUser.token,
+                        widget.username);
+                  },
                 ),
                 IconButton(
                   iconSize: 75,
                   color: Colors.blue,
                   icon: Icon(Icons.videocam),
                   onPressed: () {
-                    UserContainer.of(context).callUser(widget.mapKey);
+                    UserContainer.of(context).callUser(widget.username);
                   },
                 ),
                 IconButton(

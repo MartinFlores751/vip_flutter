@@ -96,6 +96,19 @@ Future<dynamic> getFavorites(String token, bool isHelper) async {
   return jsonDecode(response.body);
 }
 
+Future<dynamic> addFavorite(String token, String username) async {
+  String unencodedPath = "";
+  Uri target = Uri.http(serverURL, unencodedPath);
+  Map<String, String> body = {
+    'token': token,
+    'UUID': await udid,
+    'username': username
+  };
+
+  http.Response response = await http.post(target, body: body);
+  return jsonDecode(response.body);
+}
+
 // -------------
 // Firebase CRUD
 // -------------
