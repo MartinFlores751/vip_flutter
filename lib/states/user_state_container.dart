@@ -157,8 +157,10 @@ class _UserContainerState extends State<UserContainer> {
     state.signaling.switchCamera();
   }
 
-  // Mute mic should probably be imlemented...
-  muteMic() {}
+  // TODO: Mute mic should probably be imlemented...
+  muteMic() {
+    debugPrint('Hypothetically, this would mute the mic...');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +171,7 @@ class _UserContainerState extends State<UserContainer> {
       toBuild = ConversationPage();
     else
       toBuild = widget.child;
-    
+
     return _InheritedStateContainer(
       data: this,
       child: toBuild,

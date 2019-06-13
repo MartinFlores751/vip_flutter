@@ -69,8 +69,7 @@ class _ConversationPageState extends State<ConversationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: callButtons,
       body: callBody,
     );
