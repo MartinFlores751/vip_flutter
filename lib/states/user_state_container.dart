@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 
 import 'package:vip_flutter/states/user_state.dart';
 import 'package:vip_flutter/webrtc_components/signaling.dart';
+import 'package:vip_flutter/user_class.dart';
 
 class UserContainer extends StatefulWidget {
   final UserState state;
   final Widget child;
+  final User user;
 
-  UserContainer({this.state, @required this.child});
+  UserContainer({this.state, this.user, @required this.child});
 
   static _UserContainerState of(BuildContext context) {
     return (context.inheritFromWidgetOfExactType(_InheritedStateContainer)
@@ -24,32 +26,39 @@ class _UserContainerState extends State<UserContainer> {
   UserState state;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
+    super.initState();
     if (widget.state != null) {
+      debugPrint('Pre-existing state found! Reusing...');
       state = widget.state;
     } else {
-      state = UserState.initialize(ModalRoute.of(context).settings.arguments);
+      debugPrint('No pre-existing state found, creating a new state...');
+      state = UserState.initialize(widget.user);
+      _connect();
+      _initRenderers();
     }
   }
 
   // Create the two renderers for the VIP
-  initRenderers() async {
-    // Only one of these are needed!
+  _initRenderers() async {
+    debugPrint('Initializing local and remote renderer...');
     await state.localRenderer.initialize();
     await state.remoteRenderer.initialize();
   }
 
   // When the Widget gets closed
   @override
-  deactivate() {
-    super.deactivate();
+  dispose() {
+    super.dispose();
+    debugPrint('Disposing of UserState, closing signal connection...');
     if (state.signaling != null) state.signaling.close();
+
+    debugPrint('Disposing of local and remote renderer...');
     state.localRenderer.dispose();
     state.remoteRenderer.dispose();
   }
 
-  void connect() async {
+  void _connect() async {
     // If not signalling to the server, perform setup
     if (state.signaling == null) {
       debugPrint('Connecting to signaling server...');
@@ -114,10 +123,12 @@ class _UserContainerState extends State<UserContainer> {
         state.remoteRenderer.srcObject = null;
       });
     }
+    debugPrint('Signaling aleardy exists, exiting function...');
   }
 
   _invitePeer(context, peerId, useScreen) async {
     if (state.signaling != null && peerId != state.selfId) {
+      debugPrint('Calling peer...');
       state.signaling.invite(peerId, 'video', useScreen);
     }
   }
@@ -135,11 +146,13 @@ class _UserContainerState extends State<UserContainer> {
 
   hangUp() {
     if (state.signaling != null) {
+      debugPrint('Hanging up...');
       state.signaling.bye();
     }
   }
 
   switchCamera() {
+    debugPrint('Switching cameras...');
     state.signaling.switchCamera();
   }
 

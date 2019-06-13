@@ -40,16 +40,9 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    UserContainer.of(context).initRenderers(); // Create the rendering objects!
-    UserContainer.of(context).connect(); // Connect to the signalling server
-  }
-
-  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // Remove the observer
     super.dispose();
+    WidgetsBinding.instance.removeObserver(this); // Remove the observer
   }
 
   @override
@@ -612,7 +605,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
   @override
   Widget build(BuildContext context) {
-    user = ModalRoute.of(context).settings.arguments;
+    user = UserContainer.of(context).state.currentUser;
 
     // Put this into a seperate function that'll handle states better
     if (_lastLifecycleState != null) {

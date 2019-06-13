@@ -10,12 +10,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:vip_flutter/user_class.dart';
 
-enum Status {
-  offline, away, online
-}
+enum Status { offline, away, online }
 
-// https://vip-serv.herokuapp.com/api
-const String serverURL = '129.113.228.50:4567';
+//
+// vip-serv.herokuapp.com
+const String serverURL = '192.168.1.127:4567';
 Future<String> udid = FlutterUdid.consistentUdid;
 
 // ----------------
@@ -62,7 +61,7 @@ Future<dynamic> setStatus(String token, Status status) async {
   Uri target = Uri.http(serverURL, unencodedPath);
   String statusValue;
 
-  switch(status){
+  switch (status) {
     case Status.online:
       statusValue = '2';
       break;
@@ -73,7 +72,7 @@ Future<dynamic> setStatus(String token, Status status) async {
       statusValue = '0';
       break;
   }
-  
+
   Map<String, String> body = {
     "token": token,
     "UUID": await udid,
@@ -87,7 +86,7 @@ Future<dynamic> setStatus(String token, Status status) async {
 Future<dynamic> getFavorites(String token, bool isHelper) async {
   String unencodedPath = "";
   Uri target = Uri.http(serverURL, unencodedPath);
-  Map <String, String> body = {
+  Map<String, String> body = {
     "token": token,
     "UUID": await udid,
     "isHelper": isHelper.toString()
@@ -194,15 +193,14 @@ Future<Map<String, dynamic>> doAuthCRUD(
       debugPrint('About to show data...');
       results['isSuccess'] = true;
       results['user'].token = token;
-      // List<dynamic> users = jsonDecode(resp['users']);
       if (response['isHelper']) {
-        await _firebaseHelper(username);
-        await setStatus(token, Status.online);
+        _firebaseHelper(username);
+        setStatus(token, Status.online);
         results['user'].isHelper = true;
         return results;
       } else {
-        await _firebaseVip(username);
-        await setStatus(token, Status.online);
+        _firebaseVip(username);
+        setStatus(token, Status.online);
         results['user'].isHelper = false;
         return results;
       }
