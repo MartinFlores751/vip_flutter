@@ -4,10 +4,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+import 'package:vip_flutter/firestore_stuff.dart';
 
-import 'package:vip_flutter/helper_list.dart';
 import 'package:vip_flutter/routes/settings.dart';
 import 'package:vip_flutter/states/user_state_container.dart';
 import 'package:vip_flutter/db_crud.dart';
@@ -66,20 +65,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
             UserContainer.of(context).state.currentUser.token, Status.away);
 
         // Firestore stuff...
-        Map<String, dynamic> bodyCha = {
-          "${user.userName}": {
-            "away": true,
-            "online": true,
-          }
-        };
-        Firestore.instance
-            .collection('Users')
-            .document('allUsers')
-            .updateData(bodyCha);
-        Firestore.instance
-            .collection('Users')
-            .document('allVip')
-            .updateData(bodyCha); //change allVips
+        firestoreUpdateVIP(user.userName, true, true, 'allVip');
 
         Map<String, String> body = {
           "status": '1',
@@ -98,20 +84,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
             UserContainer.of(context).state.currentUser.token, Status.online);
 
         // Firebase call
-        Map<String, dynamic> bodyCha = {
-          "${user.userName}": {
-            "away": false,
-            "online": true,
-          }
-        };
-        Firestore.instance
-            .collection('Users')
-            .document('allUsers')
-            .updateData(bodyCha);
-        Firestore.instance
-            .collection('Users')
-            .document('allVip')
-            .updateData(bodyCha); //change allVips
+        firestoreUpdateVIP(user.userName, false, true, 'allVip');
 
         Map<String, String> body = {
           "status": '0',
@@ -134,33 +107,8 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
             UserContainer.of(context).state.currentUser.token, Status.offline);
 
         // Firebase
-        final DocumentReference postRef =
-            Firestore.instance.collection("Users").document('OnlineCount');
-        Firestore.instance.runTransaction((Transaction tx) async {
-          DocumentSnapshot postSnapshot = await tx.get(postRef);
-          if (postSnapshot.exists) {
-            await tx.update(postRef, <String, dynamic>{
-              'TotalOnline': postSnapshot.data['TotalOnline'] - 1
-            });
-            await tx.update(postRef, <String, dynamic>{
-              'VipOnline': postSnapshot.data['VipOnline'] - 1
-            });
-          }
-        });
-        Map<String, dynamic> bodyCha = {
-          "${user.userName}": {
-            "away": false,
-            "online": false,
-          }
-        };
-        Firestore.instance
-            .collection('Users')
-            .document('allUsers')
-            .updateData(bodyCha);
-        Firestore.instance
-            .collection('Users')
-            .document('allVip')
-            .updateData(bodyCha); //change allVips
+        firestoreRunTransaction(-1, 'VipOnline');
+        firestoreUpdateVIP(user.userName, false, false, 'allVip');
 
         // Personal Server
         Map<String, String> body = {
@@ -181,20 +129,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
       } else {
         print("Resuming");
 
-        Map<String, dynamic> bodyCha = {
-          "${user.userName}": {
-            "away": false,
-            "online": true,
-          }
-        };
-        Firestore.instance
-            .collection('Users')
-            .document('allUsers')
-            .updateData(bodyCha);
-        Firestore.instance
-            .collection('Users')
-            .document('allVip')
-            .updateData(bodyCha); //change allVips
+        firestoreUpdateVIP(user.userName, false, true, 'allVip');
 
         Map<String, String> body = {
           "status": '0',
@@ -216,28 +151,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   Widget get _lookForHelpers {
     return Scaffold(
       appBar: null,
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: Firestore.instance
-            .collection('Users')
-            .document('allHelpers')
-            .snapshots(),
-        builder:
-            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
-          switch (snapshot.connectionState) {
-            case ConnectionState.waiting:
-              return Align(
-                alignment: FractionalOffset(.5, .5),
-                child: CircularProgressIndicator(),
-              );
-            default:
-              var a = snapshot.data.data;
-              return Container(
-                child: HelperList(helpers: a),
-              );
-          }
-        },
-      ),
+      body: streamForUsersOnline(),
     );
   }
 
@@ -279,29 +193,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
       ),
       child: Align(
         alignment: FractionalOffset(.5, .5),
-        child: StreamBuilder<DocumentSnapshot>(
-          stream: Firestore.instance
-              .collection('Users')
-              .document('OnlineCount')
-              .snapshots(),
-          builder:
-              (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-            if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-                return CircularProgressIndicator();
-              default:
-                var a = snapshot.data;
-                return Align(
-                  alignment: FractionalOffset(.5, .5),
-                  child: Text(
-                    "Total Online: ${a["TotalOnline"]}",
-                    style: TextStyle(fontSize: 25),
-                  ),
-                );
-            }
-          },
-        ),
+        child: streamsForOnlineBlocks(true, 'TotalOnline', 25),
       ),
     );
   }
@@ -327,30 +219,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
               "VIP:",
               style: TextStyle(fontSize: 25),
             ),
-            StreamBuilder<DocumentSnapshot>(
-              stream: Firestore.instance
-                  .collection('Users')
-                  .document('OnlineCount')
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<DocumentSnapshot> snapshot) {
-                if (snapshot.hasError)
-                  return new Text('Error: ${snapshot.error}');
-                switch (snapshot.connectionState) {
-                  case ConnectionState.waiting:
-                    return CircularProgressIndicator();
-                  default:
-                    var a = snapshot.data;
-                    return Align(
-                      alignment: FractionalOffset(.5, .5),
-                      child: Text(
-                        "${a["VipOnline"]}",
-                        style: TextStyle(fontSize: 50),
-                      ),
-                    );
-                }
-              },
-            ),
+            streamsForOnlineBlocks(false, 'VipOnline', 50),
           ],
         ),
       ),
@@ -376,30 +245,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
               "Helpers:",
               style: TextStyle(fontSize: 25),
             ),
-            StreamBuilder<DocumentSnapshot>(
-              stream: Firestore.instance
-                  .collection('Users')
-                  .document('OnlineCount')
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<DocumentSnapshot> snapshot) {
-                if (snapshot.hasError)
-                  return new Text('Error: ${snapshot.error}');
-                switch (snapshot.connectionState) {
-                  case ConnectionState.waiting:
-                    return CircularProgressIndicator();
-                  default:
-                    var a = snapshot.data;
-                    return Align(
-                      alignment: FractionalOffset(.5, .5),
-                      child: Text(
-                        "${a["HelpersOnline"]}",
-                        style: TextStyle(fontSize: 50),
-                      ),
-                    );
-                }
-              },
-            ),
+            streamsForOnlineBlocks(false, 'HelpersOnline', 50),
           ],
         ),
       ),
@@ -455,34 +301,9 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
               setStatus(UserContainer.of(context).state.currentUser.token,
                   Status.offline);
 
-              final DocumentReference postRef = Firestore.instance
-                  .collection("Users")
-                  .document('OnlineCount');
-              Firestore.instance.runTransaction((Transaction tx) async {
-                DocumentSnapshot postSnapshot = await tx.get(postRef);
-                if (postSnapshot.exists) {
-                  await tx.update(postRef, <String, dynamic>{
-                    'TotalOnline': postSnapshot.data['TotalOnline'] - 1
-                  });
-                  await tx.update(postRef, <String, dynamic>{
-                    'VipOnline': postSnapshot.data['VipOnline'] - 1
-                  });
-                }
-                Map<String, dynamic> body = {
-                  "${user.userName}": {
-                    "away": false,
-                    "online": false,
-                  }
-                };
-                Firestore.instance
-                    .collection('Users')
-                    .document('allUsers')
-                    .updateData(body);
-                Firestore.instance
-                    .collection('Users')
-                    .document('allVip')
-                    .updateData(body); //Change to allVips
-              });
+              firestoreRunTransaction(-1, 'VipOnline');
+              firestoreUpdateVIP(user.userName, false, false, 'allVip');
+              
               Navigator.pop(context);
               Navigator.pop(context);
             },
