@@ -184,6 +184,10 @@ class Signaling {
           var id = data['from'];
           var description = data['description'];
 
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateNew);
+          }
+
           var pc = _peerConnections[id];
           if (pc != null) {
             pc.setRemoteDescription(new RTCSessionDescription(

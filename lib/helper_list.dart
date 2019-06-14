@@ -16,7 +16,7 @@ class HelperList extends StatelessWidget {
       itemCount: helpers.length,
       itemBuilder: (context, index) {
         String mapKey = helpers.keys.elementAt(index);
-        return HelperCard(mapKey: mapKey, mapValue: helpers[mapKey]);
+        return HelperCard(username: mapKey, mapValue: helpers[mapKey]);
       },
     );
   }

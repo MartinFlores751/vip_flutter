@@ -6,9 +6,8 @@ import 'package:flutter/widgets.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_webrtc/webrtc.dart';
-import 'package:vip_flutter/helper_list.dart';
 
+import 'package:vip_flutter/helper_list.dart';
 import 'package:vip_flutter/routes/settings.dart';
 import 'package:vip_flutter/states/user_state_container.dart';
 import 'package:vip_flutter/db_crud.dart';
@@ -55,7 +54,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
   // This is a recursive function that is supposed to count up to 150 before logging the user off...
   // This will get some major refactoring
-  void checkPaused(int i) async {
+  void _checkPaused(int i) async {
     // What is i supposed to be?
     if (i == 5) {
       // Going away when phone powered off
@@ -91,7 +90,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         await http.post(url, body: body);
 
         // Recursive call
-        checkPaused(i + 1);
+        _checkPaused(i + 1);
       } else {
         print("Resuming");
 
@@ -178,7 +177,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
       if (_lastLifecycleState == AppLifecycleState.paused ||
           _lastLifecycleState == AppLifecycleState.inactive) {
-        checkPaused(i + 1);
+        _checkPaused(i + 1);
       } else {
         print("Resuming");
 
@@ -210,40 +209,11 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   // ----------------------
   // Refactored Bulid Stuff
   // ----------------------
-  Widget get vipAppBar {
-    if (UserContainer.of(context).state.inCalling)
-      return null;
-    else
-      return AppBar(title: Text(''));
+  Widget get _vipAppBar {
+    return AppBar(title: Text(''));
   }
 
-  Widget get callButtons {
-    if (UserContainer.of(context).state.inCalling)
-      return SizedBox(
-          width: 200.0,
-          child: new Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                FloatingActionButton(
-                  child: const Icon(Icons.switch_camera),
-                  onPressed: UserContainer.of(context).switchCamera,
-                ),
-                FloatingActionButton(
-                  onPressed: UserContainer.of(context).hangUp,
-                  tooltip: 'Hangup',
-                  child: new Icon(Icons.call_end),
-                  backgroundColor: Colors.pink,
-                ),
-                FloatingActionButton(
-                  child: const Icon(Icons.mic_off),
-                  onPressed: UserContainer.of(context).muteMic,
-                )
-              ]));
-    else
-      return null;
-  }
-
-  Widget get lookForHelpers {
+  Widget get _lookForHelpers {
     return Scaffold(
       appBar: null,
       body: StreamBuilder<DocumentSnapshot>(
@@ -271,7 +241,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
     );
   }
 
-  Widget get callForHelpButton {
+  Widget get _callForHelpButton {
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height / 3.3,
@@ -295,7 +265,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
     );
   }
 
-  Widget get totalOnlineBlock {
+  Widget get _totalOnlineBlock {
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height / 6,
@@ -336,7 +306,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
     );
   }
 
-  Widget get vipCountBlock {
+  Widget get _vipCountBlock {
     return Container(
       width: MediaQuery.of(context).size.width / 2,
       height: MediaQuery.of(context).size.height / 3,
@@ -387,7 +357,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
     );
   }
 
-  Widget get helperCountBlock {
+  Widget get _helperCountBlock {
     return Container(
       width: MediaQuery.of(context).size.width / 2,
       height: MediaQuery.of(context).size.height / 3,
@@ -437,14 +407,14 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   }
 
   // This needs to be modified because it's overflowing!
-  Widget get vipHome {
+  Widget get _vipHome {
     return Container(
       child: Column(
         children: <Widget>[
-          callForHelpButton,
-          totalOnlineBlock,
+          _callForHelpButton,
+          _totalOnlineBlock,
           Row(
-            children: <Widget>[vipCountBlock, helperCountBlock],
+            children: <Widget>[_vipCountBlock, _helperCountBlock],
           ),
         ],
       ),
@@ -452,125 +422,86 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   }
 
   // Build what?
-  Widget get _buildSomething {
+  Widget get _buildSelectedPage {
     if (_selectedIndex == 1) {
-      return lookForHelpers;
+      return _lookForHelpers;
     } else {
-      return vipHome;
+      return _vipHome;
     }
   }
 
-  Widget get vipAppBody {
-    if (UserContainer.of(context).state.inCalling)
-      return OrientationBuilder(builder: (context, orientation) {
-        return new Container(
-          child: new Stack(children: <Widget>[
-            new Positioned(
-                left: 0.0,
-                right: 0.0,
-                top: 0.0,
-                bottom: 0.0,
-                child: new Container(
-                  margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  child: new RTCVideoView(
-                      UserContainer.of(context).state.remoteRenderer),
-                  decoration: new BoxDecoration(color: Colors.black54),
-                )),
-            new Positioned(
-              left: 20.0,
-              top: 20.0,
-              child: new Container(
-                width: orientation == Orientation.portrait ? 90.0 : 120.0,
-                height: orientation == Orientation.portrait ? 120.0 : 90.0,
-                child: new RTCVideoView(
-                    UserContainer.of(context).state.localRenderer),
-                decoration: new BoxDecoration(color: Colors.black54),
-              ),
-            ),
-          ]),
-        );
-      });
-    else
-      return _buildSomething;
-  }
-
   Widget get vipDrawer {
-    if (UserContainer.of(context).state.inCalling)
-      return null;
-    else
-      return Drawer(
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-          children: <Widget>[
-            DrawerHeader(
-              child: Row(
-                children: [
-                  accountIcon,
-                  Text(
-                    user.userName,
-                    style: new TextStyle(fontSize: 20, color: Colors.white),
-                  ),
-                ],
-              ),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+        children: <Widget>[
+          DrawerHeader(
+            child: Row(
+              children: [
+                _accountIcon,
+                Text(
+                  user.userName,
+                  style: new TextStyle(fontSize: 20, color: Colors.white),
+                ),
+              ],
             ),
-            ListTile(
-              title: Text('Log Out'),
-              onTap: () {
-                setStatus(UserContainer.of(context).state.currentUser.token,
-                    Status.offline);
+            decoration: BoxDecoration(
+              color: Colors.blue,
+            ),
+          ),
+          ListTile(
+            title: Text('Log Out'),
+            onTap: () {
+              setStatus(UserContainer.of(context).state.currentUser.token,
+                  Status.offline);
 
-                final DocumentReference postRef = Firestore.instance
-                    .collection("Users")
-                    .document('OnlineCount');
-                Firestore.instance.runTransaction((Transaction tx) async {
-                  DocumentSnapshot postSnapshot = await tx.get(postRef);
-                  if (postSnapshot.exists) {
-                    await tx.update(postRef, <String, dynamic>{
-                      'TotalOnline': postSnapshot.data['TotalOnline'] - 1
-                    });
-                    await tx.update(postRef, <String, dynamic>{
-                      'VipOnline': postSnapshot.data['VipOnline'] - 1
-                    });
+              final DocumentReference postRef = Firestore.instance
+                  .collection("Users")
+                  .document('OnlineCount');
+              Firestore.instance.runTransaction((Transaction tx) async {
+                DocumentSnapshot postSnapshot = await tx.get(postRef);
+                if (postSnapshot.exists) {
+                  await tx.update(postRef, <String, dynamic>{
+                    'TotalOnline': postSnapshot.data['TotalOnline'] - 1
+                  });
+                  await tx.update(postRef, <String, dynamic>{
+                    'VipOnline': postSnapshot.data['VipOnline'] - 1
+                  });
+                }
+                Map<String, dynamic> body = {
+                  "${user.userName}": {
+                    "away": false,
+                    "online": false,
                   }
-                  Map<String, dynamic> body = {
-                    "${user.userName}": {
-                      "away": false,
-                      "online": false,
-                    }
-                  };
-                  Firestore.instance
-                      .collection('Users')
-                      .document('allUsers')
-                      .updateData(body);
-                  Firestore.instance
-                      .collection('Users')
-                      .document('allVip')
-                      .updateData(body); //Change to allVips
-                });
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('Preferences'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AccSettings()),
-                );
-              },
-            )
-          ],
-        ),
-      );
+                };
+                Firestore.instance
+                    .collection('Users')
+                    .document('allUsers')
+                    .updateData(body);
+                Firestore.instance
+                    .collection('Users')
+                    .document('allVip')
+                    .updateData(body); //Change to allVips
+              });
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Preferences'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AccSettings()),
+              );
+            },
+          )
+        ],
+      ),
+    );
   }
 
-  Widget get accountIcon {
+  Widget get _accountIcon {
     return IconButton(
         icon: Icon(Icons.account_box),
         color: Colors.white,
@@ -580,27 +511,24 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         });
   }
 
-  void _onItemTapped(int index) {
+  void _navBarTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  Widget get vipNavBar {
-    if (UserContainer.of(context).state.inCalling)
-      return null;
-    else
-      return BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-              icon: Icon(Icons.visibility), title: Text('Get Help')),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.search), title: Text('Look For New Helpers')),
-        ],
-        currentIndex: _selectedIndex,
-        fixedColor: Colors.blueGrey,
-        onTap: _onItemTapped,
-      );
+  Widget get _vipNavBar {
+    return BottomNavigationBar(
+      items: <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+            icon: Icon(Icons.visibility), title: Text('Get Help')),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.search), title: Text('Look For New Helpers')),
+      ],
+      currentIndex: _selectedIndex,
+      fixedColor: Colors.blueGrey,
+      onTap: _navBarTapped,
+    );
   }
 
   @override
@@ -615,11 +543,11 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           break;
         case AppLifecycleState.inactive:
           debugPrint("Inactive");
-          checkPaused(0); //THIS ONE OR
+          _checkPaused(0); //THIS ONE OR
           break;
         case AppLifecycleState.paused:
           debugPrint("Paused");
-          checkPaused(0); //THIS ONE
+          _checkPaused(0); //THIS ONE
           break;
         case AppLifecycleState.suspending:
           debugPrint("Logging out");
@@ -634,13 +562,10 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
     // Here's the "actual" app
     return Scaffold(
-      appBar: vipAppBar,
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.centerFloat, // ?
-      floatingActionButton: callButtons,
-      body: vipAppBody,
+      appBar: _vipAppBar,
+      body: _buildSelectedPage,
       drawer: vipDrawer,
-      bottomNavigationBar: vipNavBar,
+      bottomNavigationBar: _vipNavBar,
     );
   }
 }
