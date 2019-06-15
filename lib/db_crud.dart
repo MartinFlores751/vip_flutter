@@ -14,49 +14,70 @@ enum Status { offline, away, online }
 
 //
 // vip-serv.herokuapp.com
-const String serverURL = '192.168.1.127:4567';
+const String serverURL = '129.113.228.50:4567';
 Future<String> udid = FlutterUdid.consistentUdid;
 
 // ----------------
 // Ruby Server CRUD
 // ----------------
 Future<dynamic> authenticateUser(String username, String password) async {
+  String unencodedString = username +  ':' + password;
+  List<int> unencodedAuth = utf8.encode(unencodedString);
+  Map<String, String> headers = {
+    'Accept': 'application/json',
+    'Authorization': 'Basic ' + base64.encode(unencodedAuth)
+  };
+
   Map<String, String> body = {
-    'user': username,
-    'password': password,
     'UUID': await udid,
   };
 
   String unencodedPath = "/api/authenticate_user";
   Uri target = Uri.http(serverURL, unencodedPath);
-  http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
+  http.Response response = await http.post(target, body: body, headers: headers);
+
+  String cookie = response.headers['set-cookie'];
+  List<dynamic> responseList = [cookie, jsonDecode(response.body)];
+  return responseList;
 }
 
-Future<dynamic> getHelpers(String token) async {
+Future<dynamic> getHelpers(String cookie) async {
+  Map<String, String> headers = {
+    'Accept': 'application/json',
+    'Cookie': cookie
+  };
+
   Map<String, String> body = {
-    "token": token,
     "UUID": await udid,
   };
 
   String unencodedPath = "/api/get_helpers";
   Uri target = Uri.http(serverURL, unencodedPath);
-  http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
+  http.Response response = await http.post(target, body: body, headers: headers);
+
+  String newCookie = response.headers['set-cookie'];
+  List<dynamic> responseList = [newCookie, jsonDecode(response.body)];
+  return responseList;
 }
 
-Future<dynamic> getVips(String token) async {
+Future<dynamic> getVips(String cookie) async {
+  Map<String, String> headers = {
+    'Accept': 'application/json',
+    'Cookie': cookie
+  };
+
   Map<String, String> body = {
-    "token": token,
     "UUID": await udid,
   };
   String unencodedPath = "/api/get_VIP";
   Uri target = Uri.http(serverURL, unencodedPath);
-  http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
-}
+  http.Response response = await http.post(target, body: body, headers: headers);
 
-Future<dynamic> setStatus(String token, Status status) async {
+  String newCookie = response.headers['set-cookie'];
+  List<dynamic> responseList = [newCookie, jsonDecode(response.body)];
+  return responseList;}
+
+Future<dynamic> setStatus(String cookie, Status status) async {
   String unencodedPath = "/api/set_status";
   Uri target = Uri.http(serverURL, unencodedPath);
   String statusValue;
@@ -74,39 +95,43 @@ Future<dynamic> setStatus(String token, Status status) async {
   }
 
   Map<String, String> body = {
-    "token": token,
     "UUID": await udid,
     "status": statusValue
   };
 
   http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
-}
 
-Future<dynamic> getFavorites(String token, bool isHelper) async {
-  String unencodedPath = "";
+  String newCookie = response.headers['set-cookie'];
+  List<dynamic> responseList = [newCookie, jsonDecode(response.body)];
+  return responseList;}
+
+Future<dynamic> getFavorites(String cookie, bool isHelper) async {
+  String unencodedPath = "/api/get_favorites";
   Uri target = Uri.http(serverURL, unencodedPath);
   Map<String, String> body = {
-    "token": token,
     "UUID": await udid,
     "isHelper": isHelper.toString()
   };
 
   http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
-}
 
-Future<dynamic> addFavorite(String token, String username) async {
+  String newCookie = response.headers['set-cookie'];
+  List<dynamic> responseList = [newCookie, jsonDecode(response.body)];
+  return responseList;}
+
+Future<dynamic> addFavorite(String cookie, String username) async {
   String unencodedPath = "";
   Uri target = Uri.http(serverURL, unencodedPath);
   Map<String, String> body = {
-    'token': token,
     'UUID': await udid,
     'username': username
   };
 
   http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
+
+  String newCookie = response.headers['set-cookie'];
+  List<dynamic> responseList = [newCookie, jsonDecode(response.body)];
+  return responseList;
 }
 
 // -------------
