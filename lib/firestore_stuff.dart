@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:vip_flutter/helper_list.dart';
+import 'package:vip_flutter/vip_list.dart';
 
 //function that sets online status
 //vipOrHelper should be either 'allVip' or 'allHelpers'
@@ -90,6 +91,28 @@ Widget streamForUsersOnline() {
           return Container(
             child: HelperList(helpers: a),
           );
+      }
+    },
+  );
+}
+
+Widget streamForVIPsOnline() {
+  return StreamBuilder<DocumentSnapshot>(
+    stream: Firestore.instance
+        .collection('Users')
+        .document('allVip')
+        .snapshots(),
+    builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+      if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+      switch (snapshot.connectionState) {
+        case ConnectionState.waiting:
+          //TODO: Make this more better looking
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        default:
+          var dataForVips = snapshot.data.data;
+          return VIPList(vips: dataForVips);
       }
     },
   );
