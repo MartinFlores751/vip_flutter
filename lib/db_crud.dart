@@ -14,7 +14,8 @@ enum Status { offline, away, online }
 
 //
 // vip-serv.herokuapp.com
-const String serverURL = '192.168.1.127:4567';
+// const String serverURL = '192.168.1.127:4567';
+const String serverURL = 'vip-serv.herokuapp.com';
 Future<String> udid = FlutterUdid.consistentUdid;
 
 // ----------------
