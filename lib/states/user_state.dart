@@ -3,7 +3,8 @@ import 'package:vip_flutter/user_class.dart';
 import 'package:vip_flutter/webrtc_components/signaling.dart';
 
 class UserState {
-  static const String WebRTCServer = '192.168.1.127';
+  //192.168.1.127
+  static const String WebRTCServer = 'demo.cloudwebrtc.com';
   User currentUser;
   bool inCalling;
   Signaling signaling;
