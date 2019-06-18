@@ -15,7 +15,8 @@ class LoginStatistics extends StatefulWidget {
   _LoginStatisticsState createState() => _LoginStatisticsState();
 }
 
-class _LoginStatisticsState extends State<LoginStatistics> with WidgetsBindingObserver {
+class _LoginStatisticsState extends State<LoginStatistics>
+    with WidgetsBindingObserver {
   bool animateLogCardOne = false;
   bool animateLogCardTwo = false;
   void beginOne() => setState(() => animateLogCardOne = true);
@@ -23,21 +24,40 @@ class _LoginStatisticsState extends State<LoginStatistics> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
-    Widget spaceFormat = SizedBox(height: MediaQuery.of(context).size.height * .025,);
+    Widget spaceFormat = SizedBox(
+      height: MediaQuery.of(context).size.height * .025,
+    );
     return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            StatsCard(title: "Total Online", titleColor: Colors.blue, callBack: beginOne, whoToShow: 'TotalOnline',),
-            spaceFormat,
-            animateLogCardOne ? StatsCard(title: "VIP Online", titleColor: Colors.redAccent, callBack: beginTwo, whoToShow: 'VipOnline',) 
-                              : Container(height: MediaQuery.of(context).size.height * .23),
-            spaceFormat,
-            animateLogCardTwo ? StatsCard(title: "Helpers Online", titleColor: Colors.green, callBack: (){}, whoToShow: 'HelpersOnline',)
-                              : Container(height: MediaQuery.of(context).size.height * .23),
-          ],
-        ),
-      );
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          StatsCard(
+            title: "Total Online",
+            titleColor: Colors.blue,
+            callBack: beginOne,
+            whoToShow: 'TotalOnline',
+          ),
+          spaceFormat,
+          animateLogCardOne
+              ? StatsCard(
+                  title: "VIP Online",
+                  titleColor: Colors.redAccent,
+                  callBack: beginTwo,
+                  whoToShow: 'VipOnline',
+                )
+              : Container(height: MediaQuery.of(context).size.height * .23),
+          spaceFormat,
+          animateLogCardTwo
+              ? StatsCard(
+                  title: "Helpers Online",
+                  titleColor: Colors.green,
+                  callBack: () {},
+                  whoToShow: 'HelpersOnline',
+                )
+              : Container(height: MediaQuery.of(context).size.height * .23),
+        ],
+      ),
+    );
   }
 }
 
@@ -49,11 +69,10 @@ class VIPQueue extends StatefulWidget {
 class _VIPQueueState extends State<VIPQueue> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: streamForVIPsOnline()
-    );
+    return Container(child: streamForVIPsOnline());
   }
 }
+
 class LoggedAcc extends StatefulWidget {
   static const String routeName = '/helper_home';
   LoggedAcc();
@@ -68,7 +87,6 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this); // Not sure what this does...
-
   }
 
   @override
@@ -85,9 +103,9 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state){
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    switch(state){
+    switch (state) {
       case AppLifecycleState.inactive:
         //firestoreRunTransaction(-1, 'HelpersOnline');
         firestoreUpdateVIP(user.userName, true, true, 'allHelpers');
