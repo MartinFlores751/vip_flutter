@@ -61,8 +61,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           _lastLifecycleState == AppLifecycleState.inactive) {
         debugPrint("Going Away");
 
-        setStatus(
-            UserContainer.of(context).state.currentUser.token, Status.away);
+        setStatus(Status.away);
 
         // Firestore stuff...
         firestoreUpdateVIP(user.userName, true, true, 'allVip');
@@ -80,8 +79,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
       } else {
         print("Resuming");
 
-        setStatus(
-            UserContainer.of(context).state.currentUser.token, Status.online);
+        setStatus(Status.online);
 
         // Firebase call
         firestoreUpdateVIP(user.userName, false, true, 'allVip');
@@ -103,8 +101,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           _lastLifecycleState == AppLifecycleState.inactive) {
         print("Logging Out");
 
-        setStatus(
-            UserContainer.of(context).state.currentUser.token, Status.offline);
+        setStatus(Status.offline);
 
         // Firebase
         firestoreRunTransaction(-1, 'VipOnline');
@@ -298,12 +295,9 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           ListTile(
             title: Text('Log Out'),
             onTap: () {
-              setStatus(UserContainer.of(context).state.currentUser.token,
-                  Status.offline);
-
               firestoreRunTransaction(-1, 'VipOnline');
               firestoreUpdateVIP(user.userName, false, false, 'allVip');
-              
+
               Navigator.pop(context);
               Navigator.pop(context);
             },
@@ -372,8 +366,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           break;
         case AppLifecycleState.suspending:
           debugPrint("Logging out");
-          setStatus(UserContainer.of(context).state.currentUser.token,
-              Status.offline);
+          setStatus(Status.offline);
           break;
         default:
           debugPrint("Don't care");

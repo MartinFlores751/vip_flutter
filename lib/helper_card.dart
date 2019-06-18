@@ -83,9 +83,7 @@ class _HelperCardState extends State<HelperCard> {
                   icon: Icon(Icons.person_add),
                   onPressed: () {
                     debugPrint('Adding to favorites!');
-                    addFavorite(
-                        UserContainer.of(context).state.currentUser.token,
-                        widget.username);
+                    addFavorite(widget.username);
                   },
                 ),
                 IconButton(
