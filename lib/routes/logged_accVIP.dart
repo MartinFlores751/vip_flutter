@@ -12,6 +12,9 @@ import 'package:vip_flutter/states/user_state_container.dart';
 import 'package:vip_flutter/db_crud.dart';
 import 'package:vip_flutter/user_class.dart';
 
+import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
+import 'package:circular_bottom_navigation/tab_item.dart';
+
 class LoggedAccVIP extends StatefulWidget {
   static const String routeName = '/vip_home';
   LoggedAccVIP();
@@ -41,6 +44,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   void dispose() {
     super.dispose();
     WidgetsBinding.instance.removeObserver(this); // Remove the observer
+    _navigationController.dispose();
   }
 
   @override
@@ -155,7 +159,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   Widget get _callForHelpButton {
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height / 3.3,
+      height: MediaQuery.of(context).size.height / 3.37,
       child: new RaisedButton.icon(
         icon: Icon(
           Icons.phone,
@@ -326,23 +330,27 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         });
   }
 
-  void _navBarTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  static int selectedPos = 0;
+  double bottomNavBarHeight = 60;
+  CircularBottomNavigationController _navigationController = new CircularBottomNavigationController(selectedPos);
+  List<TabItem> tabItems = List.of([
+    new TabItem(Icons.visibility, "Get Help", Colors.blue),
+    new TabItem(Icons.search, "Look For New Helpers", Colors.orange),
+  ]);
+
 
   Widget get _vipNavBar {
-    return BottomNavigationBar(
-      items: <BottomNavigationBarItem>[
-        BottomNavigationBarItem(
-            icon: Icon(Icons.visibility), title: Text('Get Help')),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.search), title: Text('Look For New Helpers')),
-      ],
-      currentIndex: _selectedIndex,
-      fixedColor: Colors.blueGrey,
-      onTap: _navBarTapped,
+    return CircularBottomNavigation(
+      tabItems,
+      controller: _navigationController,
+      barHeight: bottomNavBarHeight,
+      barBackgroundColor: Colors.white,
+      animationDuration: Duration(milliseconds: 300),
+      selectedCallback: (int selectedPos) {
+        setState(() {
+          this._selectedIndex = selectedPos;
+        });
+      },
     );
   }
 
@@ -377,9 +385,13 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
     // Here's the "actual" app
     return Scaffold(
       appBar: _vipAppBar,
-      body: _buildSelectedPage,
+      body: Stack(
+        children: <Widget>[
+          _buildSelectedPage,
+          Align(alignment: Alignment.bottomCenter, child: _vipNavBar),
+        ],
+      ),
       drawer: vipDrawer,
-      bottomNavigationBar: _vipNavBar,
     );
   }
 }
