@@ -1,3 +1,5 @@
+import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
+import 'package:circular_bottom_navigation/tab_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:vip_flutter/db_crud.dart';
@@ -56,6 +58,7 @@ class _LoginStatisticsState extends State<LoginStatistics>
                   whoToShow: 'HelpersOnline',
                 )
               : Container(height: MediaQuery.of(context).size.height * .23),
+          const SizedBox(height: 50),
         ],
       ),
     );
@@ -83,18 +86,38 @@ class LoggedAcc extends StatefulWidget {
 class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
   User user;
   int _selectedIndex = 0;
+  static int selectedPos = 0;
+  double bottomNavBarHeight = 50;
+
+  CircularBottomNavigationController _navigationController = CircularBottomNavigationController(selectedPos);
+  List<TabItem> tabItems = List.of([
+    TabItem(Icons.visibility, "Login Stats", Colors.blue),
+    TabItem(Icons.person_outline, "VIP Queue", Colors.orange),
+  ]);
+
+  Widget navBar;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this); // Not sure what this does...
+    navBar = CircularBottomNavigation(
+      tabItems,
+      controller: _navigationController,
+      barHeight: bottomNavBarHeight,
+      barBackgroundColor: Colors.white,
+      animationDuration: Duration(milliseconds: 300),
+      selectedCallback: (int selectedPos) {
+        setState(() {
+          this._selectedIndex = selectedPos;
+        });
+      },
+    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // UserContainer.of(context).initRenderers(); // Create the rendering objects!
-    // UserContainer.of(context).connect(); // Connect to the signalling server
   }
 
   @override
@@ -146,16 +169,16 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
           //show account information?
         });
 
-    void onItemTapped(int index) {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
-
     return Scaffold(
       appBar: AppBar(title: Text('')),
       //add a body
-      body: navBarPages[_selectedIndex],
+      body: 
+      Stack(
+        children: <Widget>[
+          navBarPages[_selectedIndex],
+          Align(alignment: Alignment.bottomCenter, child: navBar),
+        ],
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
@@ -194,17 +217,6 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
             )
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-              icon: Icon(Icons.visibility), title: Text('Login Statistics')),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline), title: Text('VIP in queue')),
-        ],
-        currentIndex: _selectedIndex,
-        fixedColor: Colors.blueGrey,
-        onTap: onItemTapped,
       ),
     );
   }
