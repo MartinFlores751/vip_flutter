@@ -19,13 +19,14 @@ class VIPList extends StatelessWidget {
         //Usernames are keys to the map of collective login statuses
         String userName = vips.keys.elementAt(index);
         return Center(
-          child: Column(
-            children: <Widget>[
-              const SizedBox(height: 15,),
-              VIPCard(userName: userName, loginStatusMap: vips[userName])
-            ],
-          )
-        );
+            child: Column(
+          children: <Widget>[
+            const SizedBox(
+              height: 15,
+            ),
+            VIPCard(userName: userName, loginStatusMap: vips[userName])
+          ],
+        ));
       },
     );
   }

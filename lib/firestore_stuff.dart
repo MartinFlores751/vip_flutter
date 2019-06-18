@@ -98,10 +98,8 @@ Widget streamForUsersOnline() {
 
 Widget streamForVIPsOnline() {
   return StreamBuilder<DocumentSnapshot>(
-    stream: Firestore.instance
-        .collection('Users')
-        .document('allVip')
-        .snapshots(),
+    stream:
+        Firestore.instance.collection('Users').document('allVip').snapshots(),
     builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
       if (snapshot.hasError) return Text('Error: ${snapshot.error}');
       switch (snapshot.connectionState) {

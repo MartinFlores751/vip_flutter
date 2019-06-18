@@ -17,47 +17,93 @@ enum Status { offline, away, online }
 // const String serverURL = '192.168.1.127:4567';
 const String serverURL = 'vip-serv.herokuapp.com';
 Future<String> udid = FlutterUdid.consistentUdid;
+String cookie;
+http.Client client;
 
 // ----------------
 // Ruby Server CRUD
 // ----------------
 Future<dynamic> authenticateUser(String username, String password) async {
+  debugPrint("Authenticating user...");
+
+  String unencodedString = username + ':' + password;
+  List<int> unencodedAuth = utf8.encode(unencodedString);
+  Map<String, String> headers = {
+    'Accept': 'application/json',
+    'Authorization': 'Basic ' + base64.encode(unencodedAuth)
+  };
+
   Map<String, String> body = {
-    'user': username,
-    'password': password,
     'UUID': await udid,
   };
 
   String unencodedPath = "/api/authenticate_user";
   Uri target = Uri.http(serverURL, unencodedPath);
-  http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
+  http.Response response =
+      await client.post(target, body: body, headers: headers);
+
+  if (response.headers['set-cookie'] != null)
+    cookie = response.headers['set-cookie'];
+
+  Map<String, dynamic> responseList = jsonDecode(response.body);
+  return responseList;
 }
 
-Future<dynamic> getHelpers(String token) async {
+Future<dynamic> getHelpers() async {
+  debugPrint("Getting helpers...");
+
+  Map<String, String> headers = {
+    'Accept': 'application/json',
+    'Cookie': cookie
+  };
+
   Map<String, String> body = {
-    "token": token,
     "UUID": await udid,
   };
 
   String unencodedPath = "/api/get_helpers";
   Uri target = Uri.http(serverURL, unencodedPath);
-  http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
+  http.Response response =
+      await client.post(target, body: body, headers: headers);
+
+  if (response.headers['set-cookie'] != null)
+    cookie = response.headers['set-cookie'];
+
+  Map<String, dynamic> responseList = jsonDecode(response.body);
+  return responseList;
 }
 
-Future<dynamic> getVips(String token) async {
+Future<dynamic> getVips() async {
+  debugPrint("Getting VIPs...");
+
+  Map<String, String> headers = {
+    'Accept': 'application/json',
+    'Cookie': cookie
+  };
+
   Map<String, String> body = {
-    "token": token,
     "UUID": await udid,
   };
   String unencodedPath = "/api/get_VIP";
   Uri target = Uri.http(serverURL, unencodedPath);
-  http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
+  http.Response response =
+      await client.post(target, body: body, headers: headers);
+
+  if (response.headers['set-cookie'] != null)
+    cookie = response.headers['set-cookie'];
+
+  Map<String, dynamic> responseList = jsonDecode(response.body);
+  return responseList;
 }
 
-Future<dynamic> setStatus(String token, Status status) async {
+Future<dynamic> setStatus(Status status) async {
+  debugPrint("Setting current user's status...");
+
+  Map<String, String> headers = {
+    'Accept': 'application/json',
+    'Cookie': cookie
+  };
+
   String unencodedPath = "/api/set_status";
   Uri target = Uri.http(serverURL, unencodedPath);
   String statusValue;
@@ -74,40 +120,63 @@ Future<dynamic> setStatus(String token, Status status) async {
       break;
   }
 
-  Map<String, String> body = {
-    "token": token,
-    "UUID": await udid,
-    "status": statusValue
-  };
+  Map<String, String> body = {"UUID": await udid, "status": statusValue};
 
-  http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
+  http.Response response =
+      await client.post(target, body: body, headers: headers);
+
+  if (response.headers['set-cookie'] != null)
+    cookie = response.headers['set-cookie'];
+
+  Map<String, dynamic> responseList = jsonDecode(response.body);
+  return responseList;
 }
 
-Future<dynamic> getFavorites(String token, bool isHelper) async {
-  String unencodedPath = "";
+Future<dynamic> getFavorites(bool isHelper) async {
+  debugPrint("Getting users current favorites...");
+
+  Map<String, String> headers = {
+    'Accept': 'application/json',
+    'Cookie': cookie
+  };
+
+  String unencodedPath = "/api/get_favorites";
   Uri target = Uri.http(serverURL, unencodedPath);
   Map<String, String> body = {
-    "token": token,
     "UUID": await udid,
     "isHelper": isHelper.toString()
   };
 
-  http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
+  http.Response response =
+      await client.post(target, body: body, headers: headers);
+
+  if (response.headers['set-cookie'] != null)
+    cookie = response.headers['set-cookie'];
+
+  Map<String, dynamic> responseList = jsonDecode(response.body);
+  return responseList;
 }
 
-Future<dynamic> addFavorite(String token, String username) async {
-  String unencodedPath = "";
-  Uri target = Uri.http(serverURL, unencodedPath);
-  Map<String, String> body = {
-    'token': token,
-    'UUID': await udid,
-    'username': username
+Future<dynamic> addFavorite(String username) async {
+  debugPrint("Adding $username to favorites...");
+
+  Map<String, String> headers = {
+    'Accept': 'application/json',
+    'Cookie': cookie
   };
 
-  http.Response response = await http.post(target, body: body);
-  return jsonDecode(response.body);
+  String unencodedPath = "/api/add_favorites";
+  Uri target = Uri.http(serverURL, unencodedPath);
+  Map<String, String> body = {'UUID': await udid, 'username': username};
+
+  http.Response response =
+      await client.post(target, body: body, headers: headers);
+
+  if (response.headers['set-cookie'] != null)
+    cookie = response.headers['set-cookie'];
+
+  Map<String, dynamic> responseList = jsonDecode(response.body);
+  return responseList;
 }
 
 // -------------
@@ -176,13 +245,12 @@ Future<Null> _firebaseVip(String username) async {
 
 Future<Map<String, dynamic>> doAuthCRUD(
     String username, String password) async {
+  client = http.Client();
   Map<String, dynamic> results = {
     'isSuccess': false,
     'error': '',
     'user': User(),
   };
-
-  debugPrint('Getting user info');
 
   Map<dynamic, dynamic> response = await authenticateUser(username, password);
   bool isSuccess = response['success'];
@@ -190,31 +258,27 @@ Future<Map<String, dynamic>> doAuthCRUD(
     results['error'] = response['error'];
     return results;
   } else {
-    debugPrint(response['isHelper'] ? 'Getting vips...' : 'Getting helpers...');
-    String token = response['token'];
-
     Map<String, dynamic> resp;
     bool isHelper = response['isHelper'];
     if (isHelper)
-      resp = await getVips(token);
+      resp = await getVips();
     else
-      resp = await getHelpers(token);
+      resp = await getHelpers();
 
     if (!resp['success']) {
       results['error'] = resp['error'];
       return results;
     } else {
-      debugPrint('About to show data...');
+      debugPrint('About to show user home...');
       results['isSuccess'] = true;
-      results['user'].token = token;
       if (response['isHelper']) {
         _firebaseHelper(username);
-        setStatus(token, Status.online);
+        await setStatus(Status.online);
         results['user'].isHelper = true;
         return results;
       } else {
         _firebaseVip(username);
-        setStatus(token, Status.online);
+        await setStatus(Status.online);
         results['user'].isHelper = false;
         return results;
       }
