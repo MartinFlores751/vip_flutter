@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:vip_flutter/db_crud.dart';
 
 import 'package:vip_flutter/firestore_stuff.dart';
 import 'package:vip_flutter/stats_card.dart';
@@ -109,18 +110,22 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
       case AppLifecycleState.inactive:
         //firestoreRunTransaction(-1, 'HelpersOnline');
         firestoreUpdateVIP(user.userName, true, true, 'allHelpers');
+        setStatus(Status.away);
         break;
       case AppLifecycleState.resumed:
         firestoreRunTransaction(1, 'HelpersOnline');
         firestoreUpdateVIP(user.userName, false, true, 'allHelpers');
+        setStatus(Status.online);
         break;
       case AppLifecycleState.suspending:
         //firestoreRunTransaction(-1, 'HelpersOnline');
         firestoreUpdateVIP(user.userName, false, false, 'allHelpers');
+        setStatus(Status.offline);
         break;
       case AppLifecycleState.paused:
         firestoreRunTransaction(-1, 'HelpersOnline');
         firestoreUpdateVIP(user.userName, true, true, 'allHelpers');
+                setStatus(Status.away);
         break;
     }
   }

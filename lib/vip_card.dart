@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vip_flutter/states/user_state_container.dart';
 
 //VIP card returns a Card widget that displays a
 //VIP's name, and logon status (indicated by color)
@@ -65,22 +66,15 @@ class _VIPCardState extends State<VIPCard> {
                       child: Row(
                     children: <Widget>[
                       //TODO: Add button functionality
-                      IconButton(
-                        icon: Icon(
-                          Icons.videocam,
-                          size: 50,
-                          color: Colors.blueAccent,
-                        ),
+                      IconButton(icon: Icon(Icons.videocam, size: 50, color: Colors.blueAccent,), 
+                        onPressed: () {
+                          UserContainer.of(context).callUser(widget.userName);
+                        },
+                      ),
+                      IconButton(icon: Icon(Icons.remove_circle, size: 50, color: Colors.redAccent), 
                         onPressed: () {},
                       ),
-                      IconButton(
-                        icon: Icon(Icons.remove_circle,
-                            size: 50, color: Colors.redAccent),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.person_add,
-                            size: 50, color: Colors.purpleAccent),
+                      IconButton(icon: Icon(Icons.person_add, size: 50, color: Colors.purpleAccent), 
                         onPressed: () {},
                       ),
                     ],
