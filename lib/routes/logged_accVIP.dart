@@ -175,6 +175,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         splashColor: Colors.green,
         onPressed: () {
           debugPrint("This is where help would be called!");
+          UserContainer.of(context).callAnyUser();
         },
       ),
     );
@@ -332,12 +333,12 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
   static int selectedPos = 0;
   double bottomNavBarHeight = 60;
-  CircularBottomNavigationController _navigationController = new CircularBottomNavigationController(selectedPos);
+  CircularBottomNavigationController _navigationController =
+      new CircularBottomNavigationController(selectedPos);
   List<TabItem> tabItems = List.of([
     new TabItem(Icons.visibility, "Get Help", Colors.blue),
     new TabItem(Icons.search, "Look For New Helpers", Colors.orange),
   ]);
-
 
   Widget get _vipNavBar {
     return CircularBottomNavigation(

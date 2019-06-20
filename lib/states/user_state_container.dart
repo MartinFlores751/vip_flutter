@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:vip_flutter/routes/conversation_page.dart';
@@ -145,6 +147,14 @@ class _UserContainerState extends State<UserContainer> {
     });
   }
 
+  callAnyUser() async {
+    // TODO: Implement this feature proper!
+    // Currently can call self too!
+    debugPrint(state.peers.toString());
+    Random rnd = Random();
+    int peerToCall = rnd.nextInt(state.peers.length);
+    _invitePeer(context, state.peers[peerToCall]['id'], false);
+  }
   hangUp() {
     if (state.signaling != null) {
       debugPrint('Hanging up...');
