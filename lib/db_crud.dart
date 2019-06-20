@@ -169,8 +169,9 @@ Future<dynamic> addFavorite(String username) async {
   Uri target = Uri.http(serverURL, unencodedPath);
   Map<String, String> body = {'UUID': await udid, 'username': username};
 
+  // For some reason, client.post is not working here...
   http.Response response =
-      await client.post(target, body: body, headers: headers);
+      await http.post(target, body: body, headers: headers);
 
   if (response.headers['set-cookie'] != null)
     cookie = response.headers['set-cookie'];

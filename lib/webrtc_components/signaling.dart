@@ -16,6 +16,17 @@ enum SignalingState {
   ConnectionError,
 }
 
+class Offer {
+  var id;
+  var description;
+  var media;
+  var sessionId;
+
+  Offer({this.id, this.description, this.media, this.sessionId});
+}
+
+Offer lastOffer;
+
 /*
  * callbacks for Signaling API.
  */
@@ -47,6 +58,7 @@ class Signaling {
   Map<String, dynamic> _iceServers = {
     'iceServers': [
       {'url': 'stun:stun.l.google.com:19302'},
+      {'url': 'stun:stun.stunprotocol.org:3478'},
       /**
        * turn server configuration example.
       {
@@ -165,16 +177,15 @@ class Signaling {
           var sessionId = data['session_id'];
           this._sessionId = sessionId;
 
-          if (this.onStateChange != null) {
-            this.onStateChange(SignalingState.CallStateNew);
-          }
+          lastOffer = Offer(
+              id: data['from'],
+              description: data['description'],
+              media: data['media'],
+              sessionId: data['session_id']);
 
-          _createPeerConnection(id, media, false).then((pc) {
-            _peerConnections[id] = pc;
-            pc.setRemoteDescription(new RTCSessionDescription(
-                description['sdp'], description['type']));
-            _createAnswer(id, pc, media);
-          });
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateRinging);
+          }
         }
         break;
 
@@ -430,5 +441,18 @@ class Signaling {
     JsonEncoder encoder = new JsonEncoder();
     if (_socket != null) _socket.add(encoder.convert(data));
     print('send: ' + encoder.convert(data));
+  }
+
+  acceptCall() {
+    if (this.onStateChange != null) {
+      this.onStateChange(SignalingState.CallStateNew);
+    }
+
+    _createPeerConnection(lastOffer.id, lastOffer.media, false).then((pc) {
+      _peerConnections[lastOffer.id] = pc;
+      pc.setRemoteDescription(new RTCSessionDescription(
+          lastOffer.description['sdp'], lastOffer.description['type']));
+      _createAnswer(lastOffer.id, pc, lastOffer.media);
+    });
   }
 }

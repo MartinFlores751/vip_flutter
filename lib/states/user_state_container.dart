@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:vip_flutter/routes/conversation_page.dart';
@@ -94,8 +96,15 @@ class _UserContainerState extends State<UserContainer> {
             debugPrint('Making a call...');
             break;
           case SignalingState.CallStateConnected:
+            debugPrint('Call started!');
+            break;
           case SignalingState.CallStateRinging:
             debugPrint('Incomming call...');
+            if (!state.currentUser.isHelper) {
+              // automagically accept if user is VIP
+              state.signaling.acceptCall();
+            }
+            setState(() => state.isRinging = true);
             break;
           case SignalingState.ConnectionClosed:
           case SignalingState.ConnectionError:
@@ -143,6 +152,27 @@ class _UserContainerState extends State<UserContainer> {
         _invitePeer(context, p['id'], false);
       }
     });
+  }
+
+  callAnyUser() async {
+    // TODO: Implement this feature proper!
+    // Currently can call self too!
+    debugPrint(state.peers.toString());
+    Random rnd = Random();
+    int peerToCall = rnd.nextInt(state.peers.length);
+    _invitePeer(context, state.peers[peerToCall]['id'], false);
+  }
+
+  acceptCall() {
+    debugPrint('Accepting the call!');
+    state.signaling.acceptCall();
+    setState(() => state.isRinging = false);
+  }
+
+  rejectCall() {
+    debugPrint('Rejecting the call...');
+    state.signaling.bye();
+    setState(() => state.isRinging = false);
   }
 
   hangUp() {
