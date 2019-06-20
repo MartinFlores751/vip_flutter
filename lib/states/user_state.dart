@@ -3,10 +3,10 @@ import 'package:vip_flutter/user_class.dart';
 import 'package:vip_flutter/webrtc_components/signaling.dart';
 
 class UserState {
-  //192.168.1.127
   static const String WebRTCServer = 'demo.cloudwebrtc.com';
   User currentUser;
   bool inCalling;
+  bool isRinging;
   Signaling signaling;
   var selfId;
   List<dynamic> peers;
@@ -16,6 +16,7 @@ class UserState {
   UserState(
       {this.currentUser,
       this.inCalling,
+      this.isRinging,
       this.signaling,
       this.localRenderer,
       this.remoteRenderer});
@@ -24,6 +25,7 @@ class UserState {
     return UserState(
         currentUser: user,
         inCalling: false,
+        isRinging: false,
         localRenderer: RTCVideoRenderer(),
         remoteRenderer: RTCVideoRenderer());
   }

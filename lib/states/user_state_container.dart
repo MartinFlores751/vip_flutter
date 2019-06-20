@@ -96,8 +96,15 @@ class _UserContainerState extends State<UserContainer> {
             debugPrint('Making a call...');
             break;
           case SignalingState.CallStateConnected:
+            debugPrint('Call started!');
+            break;
           case SignalingState.CallStateRinging:
             debugPrint('Incomming call...');
+            if (!state.currentUser.isHelper) {
+              // automagically accept if user is VIP
+              state.signaling.acceptCall();
+            }
+            setState(() => state.isRinging = true);
             break;
           case SignalingState.ConnectionClosed:
           case SignalingState.ConnectionError:
@@ -155,6 +162,19 @@ class _UserContainerState extends State<UserContainer> {
     int peerToCall = rnd.nextInt(state.peers.length);
     _invitePeer(context, state.peers[peerToCall]['id'], false);
   }
+
+  acceptCall() {
+    debugPrint('Accepting the call!');
+    state.signaling.acceptCall();
+    setState(() => state.isRinging = false);
+  }
+
+  rejectCall() {
+    debugPrint('Rejecting the call...');
+    state.signaling.bye();
+    setState(() => state.isRinging = false);
+  }
+
   hangUp() {
     if (state.signaling != null) {
       debugPrint('Hanging up...');
