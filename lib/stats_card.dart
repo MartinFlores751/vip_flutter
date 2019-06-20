@@ -8,7 +8,7 @@ import 'package:vip_flutter/firestore_stuff.dart';
 //
 //  callback is optional. Used to chain animations back to back.
 //  See logged_acc.dart for example
-// 
+//
 //  TODO: Remove StatsCard and use StatsCardCustom
 @Deprecated("Use StatsCardCustom in stats_card.dart")
 class StatsCard extends StatefulWidget {
@@ -100,13 +100,9 @@ class _StatsCardState extends State<StatsCard> with TickerProviderStateMixin {
 //
 //  callback is optional. Used to chain animations back to back.
 //  See logged_acc.dart for example
-// 
+//
 //  TODO: Remove StatsCard and use StatsCardCustom
-enum SlideDirection {
-  Down,
-  Left,
-  Right
-}
+enum SlideDirection { Down, Left, Right }
 
 class StatsCardCustom extends StatefulWidget {
   StatsCardCustom(
@@ -129,7 +125,8 @@ class StatsCardCustom extends StatefulWidget {
   _StatsCardCustomState createState() => _StatsCardCustomState();
 }
 
-class _StatsCardCustomState extends State<StatsCardCustom> with TickerProviderStateMixin {
+class _StatsCardCustomState extends State<StatsCardCustom>
+    with TickerProviderStateMixin {
   AnimationController controller;
   Animation<double> animation, slideAnim;
 
@@ -178,10 +175,12 @@ class _StatsCardCustomState extends State<StatsCardCustom> with TickerProviderSt
     //customCard is wrapped in a SlideTransition and FadeTransition
     Widget slideIn = SlideTransition(
         position: Tween<Offset>(
-          begin: (widget.direction == SlideDirection.Down) ? const Offset(0, -.5) 
-                  : (widget.direction == SlideDirection.Left) ? const Offset(-.5, 0) 
-                    : const Offset(.5, 0), 
-          end: Offset.zero)
+                begin: (widget.direction == SlideDirection.Down)
+                    ? const Offset(0, -.5)
+                    : (widget.direction == SlideDirection.Left)
+                        ? const Offset(-.5, 0)
+                        : const Offset(.5, 0),
+                end: Offset.zero)
             .animate(animation),
         child: customCard);
 

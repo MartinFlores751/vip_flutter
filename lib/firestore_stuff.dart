@@ -89,7 +89,7 @@ Widget streamForUsersOnline() {
         default:
           var a = snapshot.data.data;
           return Container(
-            height: MediaQuery.of(context).size.height/1.25,
+            height: MediaQuery.of(context).size.height / 1.25,
             child: HelperList(helpers: a),
           );
       }
