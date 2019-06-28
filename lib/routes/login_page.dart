@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController _password = TextEditingController();
   FocusNode _usernameFocus = FocusNode();
   FocusNode _passwordFocus = FocusNode();
-  
+
   bool isValidating = false;
 
   Widget mainView;
@@ -58,7 +58,8 @@ class _LoginPageState extends State<LoginPage> {
         validator: (value) {
           if (value.length == 0) return 'Please input a valid username!';
         },
-        onEditingComplete: () => FocusScope.of(context).requestFocus(_passwordFocus),
+        onEditingComplete: () =>
+            FocusScope.of(context).requestFocus(_passwordFocus),
       ),
     );
   }
@@ -77,11 +78,12 @@ class _LoginPageState extends State<LoginPage> {
         decoration: new InputDecoration(
             border: new OutlineInputBorder(
                 borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-                borderSide: new BorderSide(color: Theme.of(context).accentColor)),
+                borderSide:
+                    new BorderSide(color: Theme.of(context).accentColor)),
             hintText: '******',
             labelText: 'Password',
             prefixIcon: Icon(
-              Icons.enhanced_encryption,
+              Icons.lock,
               color: Theme.of(context).primaryColor,
             ),
             suffixStyle: const TextStyle(color: Colors.green)),
@@ -162,9 +164,10 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 7.5),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
+          color: Theme.of(context).primaryColor,
           shape: BoxShape.circle,
-          border: Border.all(width: 3, color: Theme.of(context).iconTheme.color)),
+          border:
+              Border.all(width: 3, color: Theme.of(context).iconTheme.color)),
       child: _logoIcon,
     );
   }

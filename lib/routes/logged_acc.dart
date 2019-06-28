@@ -94,7 +94,7 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
       CircularBottomNavigationController(selectedPos);
   List<TabItem> tabItems = List.of([
     TabItem(Icons.visibility, "Login Stats", Colors.blue),
-    TabItem(Icons.person_outline, "VIP Queue", Colors.orange),
+    TabItem(Icons.people_outline, "VIP Queue", Colors.orange),
   ]);
 
   Widget navBar;
