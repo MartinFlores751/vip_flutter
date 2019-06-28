@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_udid/flutter_udid.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
+import 'package:circular_bottom_navigation/tab_item.dart';
 
 class SignUp extends StatefulWidget {
   final String urlBase;
@@ -16,31 +18,33 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
-  var _fullName = TextEditingController();
-  var _userName = TextEditingController();
-  var _password = TextEditingController();
-  var _conPass = TextEditingController();
-  int _rValue1 = -1;
+  final _formKey = GlobalKey<FormState>();
 
-  void _handleValue1(int value) {
-    setState(() {
-      _rValue1 = value;
-    });
-  }
+  TextEditingController _fullName = TextEditingController();
+  TextEditingController _userName = TextEditingController();
+  TextEditingController _password = TextEditingController();
+  TextEditingController _conPass = TextEditingController();
+
+  FocusNode _fullNameNode = FocusNode();
+  FocusNode _userNameNode = FocusNode();
+  FocusNode _passwordNode = FocusNode();
+  FocusNode _conPassNode = FocusNode();
+
+  CircularBottomNavigationController _navControl =
+      CircularBottomNavigationController(0);
 
   Future<dynamic> connect() async {
     String udid = await FlutterUdid.consistentUdid;
-    if (_fullName.text.length == 0 ||
-        _userName.text.length == 0 ||
-        _rValue1 == -1 ||
-        _password.text.length == 0 ||
-        _conPass.text.length == 0) {
+    if (!_formKey.currentState.validate()) {
+      debugPrint('Bad boi');
       return null;
     }
+
+    debugPrint(_navControl.value.toString());
     Map<String, String> body = {
       'name': _fullName.text,
       'user': _userName.text,
-      'helper': _rValue1.toString(),
+      'helper': _navControl.value.toString(),
       'password': _password.text,
       'c_password': _conPass.text,
       'UUID': udid,
@@ -68,7 +72,7 @@ class _SignUpState extends State<SignUp> {
           .collection('Users')
           .document('allUsers')
           .updateData(body);
-      if (_rValue1 == 1) {
+      if (_navControl.value == 1) {
         Firestore.instance
             .collection('Users')
             .document('allHelpers')
@@ -88,144 +92,172 @@ class _SignUpState extends State<SignUp> {
     }
   }
 
+  Widget get _signUpChoice {
+    return CircularBottomNavigation(
+      <TabItem>[
+        TabItem(Icons.accessibility_new, "VIP", Theme.of(context).accentColor),
+        TabItem(Icons.visibility, "Helper", Theme.of(context).primaryColor),
+      ],
+      controller: _navControl,
+      barHeight: 60.0,
+      barBackgroundColor: Theme.of(context).canvasColor,
+      animationDuration: Duration(milliseconds: 300),
+    );
+  }
+
+  Widget get _nameField {
+    return Container(
+        width: MediaQuery.of(context).size.width * 0.75,
+        margin: EdgeInsets.only(bottom: 10.0),
+        child: TextFormField(
+          inputFormatters: [
+            WhitelistingTextInputFormatter(RegExp("[a-zA-Z] ")),
+          ],
+          controller: _fullName,
+          focusNode: _fullNameNode,
+          textInputAction: TextInputAction.next,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+                borderSide: BorderSide(color: Theme.of(context).accentColor)),
+            hintText: 'Full Name',
+            labelText: 'Full Name',
+            prefixIcon: Icon(Icons.face, color: Theme.of(context).primaryColor),
+          ),
+          validator: (value) {
+            if (value.length == 0) return 'Please input your full name.';
+          },
+          onEditingComplete: () =>
+              FocusScope.of(context).requestFocus(_userNameNode),
+        ));
+  }
+
+  Widget get _userNameField {
+    return Container(
+        width: MediaQuery.of(context).size.width * 0.75,
+        margin: EdgeInsets.only(bottom: 10.0),
+        child: TextFormField(
+          inputFormatters: [
+            WhitelistingTextInputFormatter(RegExp("[a-zA-Z0-9]")),
+          ],
+          controller: _userName,
+          focusNode: _userNameNode,
+          textInputAction: TextInputAction.next,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+                borderSide: BorderSide(color: Theme.of(context).accentColor)),
+            labelText: 'Username',
+            hintText: 'Username',
+            prefixIcon:
+                Icon(Icons.person, color: Theme.of(context).primaryColor),
+          ),
+          validator: (value) {
+            if (value.length == 0) return 'Please input a username.';
+          },
+          onEditingComplete: () =>
+              FocusScope.of(context).requestFocus(_passwordNode),
+        ));
+  }
+
+  Widget get _passwordField {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.75,
+      margin: EdgeInsets.only(bottom: 10.0),
+      child: TextFormField(
+          inputFormatters: [
+            WhitelistingTextInputFormatter(RegExp("[a-zA-Z0-9 ]")),
+          ],
+          controller: _password,
+          focusNode: _passwordNode,
+          textInputAction: TextInputAction.next,
+          obscureText: true,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+                borderSide: BorderSide(color: Theme.of(context).accentColor)),
+            labelText: 'Password',
+            hintText: 'Password',
+            prefixIcon: Icon(Icons.lock, color: Theme.of(context).primaryColor),
+          ),
+          validator: (value) {
+            if (value.length == 0) return 'Please input a password.';
+          },
+          onEditingComplete: () =>
+              FocusScope.of(context).requestFocus(_conPassNode)),
+    );
+  }
+
+  Widget get _conPassField {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.75,
+      margin: EdgeInsets.only(bottom: 10.0),
+      child: TextFormField(
+          inputFormatters: [
+            WhitelistingTextInputFormatter(RegExp("[a-zA-Z0-9 ]")),
+          ],
+          controller: _conPass,
+          focusNode: _conPassNode,
+          textInputAction: TextInputAction.done,
+          obscureText: true,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+                borderSide: BorderSide(color: Theme.of(context).accentColor)),
+            labelText: 'Confirm Password',
+            hintText: 'Confirm Password',
+            prefixIcon: Icon(Icons.enhanced_encryption,
+                color: Theme.of(context).primaryColor),
+          ),
+          validator: (value) {
+            if (value.length == 0)
+              return 'Please confirm your password.';
+            else if (value != _password.text) return 'Passwords do not match!';
+          }),
+    );
+  }
+
+  Widget get _signUpForm {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          _nameField,
+          _userNameField,
+          _passwordField,
+          _conPassField,
+        ],
+      ),
+    );
+  }
+
+  Widget get _submitButton {
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      FlatButton(
+          child: Text(
+            'Create',
+            style: TextStyle(color: Colors.blue, fontSize: 20),
+          ),
+          onPressed: () => signup())
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
-    var radio = new Column(
-      children: <Widget>[
-        Text(
-          'Helper:',
-          style: TextStyle(fontSize: 17),
-        ),
-        new Center(
-          child: new Row(
+    return Scaffold(
+      appBar: AppBar(),
+      body: Container(
+        child: Stack(children: <Widget>[
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text('Yes'),
-              Radio(
-                value: 1,
-                groupValue: _rValue1,
-                onChanged: _handleValue1,
-              ),
-              Text('No'),
-              Radio(
-                value: 0,
-                groupValue: _rValue1,
-                onChanged: _handleValue1,
-              ),
+              _signUpForm,
+              _submitButton,
             ],
           ),
-        ),
-      ],
-    );
-    var signUpCredentials = new Column(
-      children: [
-        radio,
-        Container(
-          //padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-          width: 160,
-          height: 50,
-          child: TextFormField(
-            inputFormatters: [
-              new WhitelistingTextInputFormatter(new RegExp("[a-zA-Z ]")),
-            ],
-            controller: _fullName,
-            autofocus: false,
-            obscureText: false,
-            decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-                //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                labelText: 'FullName'),
-          ),
-        ),
-        Container(
-          //padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-          width: 160,
-          height: 50,
-          child: TextFormField(
-            inputFormatters: [
-              new WhitelistingTextInputFormatter(new RegExp("[a-zA-Z0-9]")),
-              LengthLimitingTextInputFormatter(10),
-            ],
-            controller: _userName,
-            autofocus: false,
-            obscureText: false,
-            decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-                //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                labelText: 'Username'),
-          ),
-        ),
-        Container(
-          //padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-          width: 160,
-          height: 50,
-          child: TextFormField(
-            inputFormatters: [
-              new BlacklistingTextInputFormatter(new RegExp("[ ]")),
-            ],
-            controller: _password,
-            autofocus: false,
-            obscureText: true,
-            decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-                //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                labelText: 'Password'),
-          ),
-        ),
-        Container(
-          //padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-          width: 160,
-          height: 50,
-          child: TextFormField(
-            inputFormatters: [
-              new BlacklistingTextInputFormatter(new RegExp("[ ]")),
-            ],
-            controller: _conPass,
-            autofocus: false,
-            obscureText: true,
-            decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 10.0),
-                //border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                labelText: 'Confirm Pass.'),
-          ),
-        ),
-      ],
-    );
-
-    var created =
-        new Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      FlatButton(
-        child: Text(
-          'Create',
-          style: TextStyle(color: Colors.blue, fontSize: 20),
-        ),
-        onPressed: () {
-          signup();
-        },
-      )
-    ]);
-
-    return Scaffold(
-      resizeToAvoidBottomPadding: false,
-      appBar: AppBar(
-        title: Text(''),
-      ),
-      body: new Container(
-        //alignment: FractionalOffset(.5, .5),
-        child: Align(
-          alignment: FractionalOffset(.5, .5),
-          //padding: EdgeInsets.fromLTRB(0, 70, 0, 0),
-          child: Column(
-            //mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(
-                height: 30,
-              ),
-              signUpCredentials,
-              created
-            ],
-          ),
-        ),
+          Align(alignment: Alignment.bottomCenter, child: _signUpChoice)
+        ]),
       ),
     );
   }
