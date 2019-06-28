@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:vip_flutter/firestore_stuff.dart';
+import 'package:vip_flutter/routes/call_prompt.dart';
 
 import 'package:vip_flutter/routes/settings.dart';
 import 'package:vip_flutter/states/user_state_container.dart';
@@ -152,14 +154,14 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   Widget get _lookForHelpers {
     return Scaffold(
       appBar: null,
-      body: streamForUsersOnline(),
+      body: streamForHelpersOnline(),
     );
   }
 
   Widget get _callForHelpButton {
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height / 3.37,
+      height: MediaQuery.of(context).size.height / 3.36,
       child: new RaisedButton.icon(
         icon: Icon(
           Icons.phone,
@@ -174,6 +176,9 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         elevation: 4.0,
         splashColor: Colors.green,
         onPressed: () {
+          setState(() {
+            frosted = true;
+          });
           debugPrint("This is where help would be called!");
           UserContainer.of(context).callAnyUser();
         },
@@ -336,13 +341,15 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   CircularBottomNavigationController _navigationController =
       new CircularBottomNavigationController(selectedPos);
   List<TabItem> tabItems = List.of([
-    new TabItem(Icons.visibility, "Get Help", Colors.blue),
-    new TabItem(Icons.search, "Look For New Helpers", Colors.orange),
+    new TabItem(Icons.visibility, "Get Help", Colors.black),
+    new TabItem(Icons.search, "Look For New Helpers", Colors.black),
   ]);
 
   Widget get _vipNavBar {
     return CircularBottomNavigation(
       tabItems,
+      selectedIconColor: _selectedIndex == 0 ? Colors.blue : Colors.orange,
+      normalIconColor: _selectedIndex == 0 ? Colors.orange : Colors.blue,
       controller: _navigationController,
       barHeight: bottomNavBarHeight,
       barBackgroundColor: Colors.white,
@@ -354,7 +361,12 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
       },
     );
   }
-
+  void frostedOff(){
+    setState(() {
+      frosted = false; 
+    });
+  }
+  bool frosted = false;
   @override
   Widget build(BuildContext context) {
     user = UserContainer.of(context).state.currentUser;
@@ -385,11 +397,12 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
     // Here's the "actual" app
     return Scaffold(
-      appBar: _vipAppBar,
+      appBar: frosted ? null : _vipAppBar,
       body: Stack(
         children: <Widget>[
           _buildSelectedPage,
           Align(alignment: Alignment.bottomCenter, child: _vipNavBar),
+          frosted ? OutgoingCall(frost: frostedOff) : Container(width: 0, height: 0,)
         ],
       ),
       drawer: vipDrawer,

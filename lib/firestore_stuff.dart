@@ -5,8 +5,7 @@ import 'package:vip_flutter/vip_list.dart';
 
 //function that sets online status
 //vipOrHelper should be either 'allVip' or 'allHelpers'
-void firestoreUpdateVIP(
-    String userName, bool away, bool online, String vipOrHelper) {
+void firestoreUpdateVIP(String userName, bool away, bool online, String vipOrHelper) {
   Map<String, dynamic> bodyCha = {
     "$userName": {
       "away": away,
@@ -73,7 +72,7 @@ Widget streamsForOnlineBlocks(bool total, String whoToChange, double fonSize) {
   );
 }
 
-Widget streamForUsersOnline() {
+Widget streamForHelpersOnline() {
   return StreamBuilder<DocumentSnapshot>(
     stream: Firestore.instance
         .collection('Users')
@@ -115,4 +114,22 @@ Widget streamForVIPsOnline() {
       }
     },
   );
+}
+
+//signUpWho should be either 'allHelpers' or 'allVip' 
+Widget signUpUserFirebase(String userName, String signUpWho) {
+  Map<String, dynamic> body = {
+    "$userName": {
+      "away": false,
+      "online": false,
+    }
+  };
+  Firestore.instance
+          .collection('Users')
+          .document('allUsers')
+          .updateData(body);
+  Firestore.instance
+          .collection('Users')
+          .document(signUpWho)
+          .updateData(body);
 }
