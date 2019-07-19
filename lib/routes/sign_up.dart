@@ -111,7 +111,7 @@ class _SignUpState extends State<SignUp> {
         margin: EdgeInsets.only(bottom: 10.0),
         child: TextFormField(
           inputFormatters: [
-            WhitelistingTextInputFormatter(RegExp("[a-zA-Z] ")),
+            WhitelistingTextInputFormatter(RegExp("[a-zA-Z]")),
           ],
           controller: _fullName,
           focusNode: _fullNameNode,
