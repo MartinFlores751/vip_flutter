@@ -9,6 +9,7 @@ import 'package:flutter_udid/flutter_udid.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:vip_flutter/user_class.dart';
+import 'package:vip_flutter/firestore_stuff.dart';
 
 enum Status { offline, away, online }
 
@@ -180,70 +181,21 @@ Future<dynamic> addFavorite(String username) async {
   return responseList;
 }
 
-// -------------
-// Firebase CRUD
-// -------------
+// ----------------
+// Firebase Helpers
+// ----------------
 
-// No Idea what this does...
 Future<Null> _firebaseHelper(String username) async {
-  final DocumentReference postRef =
-      Firestore.instance.collection("Users").document('OnlineCount');
-  Firestore.instance.runTransaction((Transaction tx) async {
-    DocumentSnapshot postSnapshot = await tx.get(postRef);
-    if (postSnapshot.exists) {
-      await tx.update(postRef, <String, dynamic>{
-        'TotalOnline': postSnapshot.data['TotalOnline'] + 1
-      });
-      await tx.update(postRef, <String, dynamic>{
-        'HelpersOnline': postSnapshot.data['HelpersOnline'] + 1
-      });
-    }
-    Map<String, dynamic> body = {
-      "$username": {
-        "away": false,
-        "online": true,
-      }
-    };
-    Firestore.instance
-        .collection('Users')
-        .document('allUsers')
-        .updateData(body);
-    Firestore.instance
-        .collection('Users')
-        .document('allHelpers')
-        .updateData(body);
-  });
+  firestoreRunTransaction(1, 'HelpersOnline');
+  firestoreUpdateVIP(username, false, true, 'allHelpers');
 }
 
 Future<Null> _firebaseVip(String username) async {
-  final DocumentReference postRef =
-      Firestore.instance.collection("Users").document('OnlineCount');
-  Firestore.instance.runTransaction((Transaction tx) async {
-    DocumentSnapshot postSnapshot = await tx.get(postRef);
-    if (postSnapshot.exists) {
-      await tx.update(postRef, <String, dynamic>{
-        'TotalOnline': postSnapshot.data['TotalOnline'] + 1
-      });
-      await tx.update(postRef,
-          <String, dynamic>{'VipOnline': postSnapshot.data['VipOnline'] + 1});
-    }
-    Map<String, dynamic> body = {
-      "$username": {
-        "away": false,
-        "online": true,
-      }
-    };
-    Firestore.instance
-        .collection('Users')
-        .document('allUsers')
-        .updateData(body);
-    Firestore.instance
-        .collection('Users')
-        .document('allVip')
-        .updateData(body); //Change to allVips
-  });
+  firestoreRunTransaction(1, 'VipOnline');
+  firestoreUpdateVIP(username, false, true, 'allVip');
 }
 
+// Login handler!
 Future<Map<String, dynamic>> doAuthCRUD(
     String username, String password) async {
   client = http.Client();
@@ -272,14 +224,13 @@ Future<Map<String, dynamic>> doAuthCRUD(
     } else {
       debugPrint('About to show user home...');
       results['isSuccess'] = true;
+      await setStatus(Status.online);
       if (response['isHelper']) {
         _firebaseHelper(username);
-        await setStatus(Status.online);
         results['user'].isHelper = true;
         return results;
       } else {
         _firebaseVip(username);
-        await setStatus(Status.online);
         results['user'].isHelper = false;
         return results;
       }
