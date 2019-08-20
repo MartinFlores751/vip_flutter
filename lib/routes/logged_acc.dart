@@ -133,7 +133,6 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
     switch (state) {
       case AppLifecycleState.inactive:
-        //firestoreRunTransaction(-1, 'HelpersOnline');
         firestoreUpdateVIP(user.userName, true, true, 'allHelpers');
         setStatus(Status.away);
         break;
@@ -143,7 +142,6 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
         setStatus(Status.online);
         break;
       case AppLifecycleState.suspending:
-        //firestoreRunTransaction(-1, 'HelpersOnline');
         firestoreUpdateVIP(user.userName, false, false, 'allHelpers');
         setStatus(Status.offline);
         break;
@@ -166,6 +164,8 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
     });
   }
 
+  Widget get _drawer {}
+
   @override
   Widget build(BuildContext context) {
     user = UserContainer.of(context).state.currentUser;
@@ -177,60 +177,57 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
           //show account information?
         });
 
-    return Stack(
-      children: <Widget>[
-        Scaffold(
-          appBar: AppBar(title: Text('')),
-          //add a body
-          body: Stack(
-            children: <Widget>[
-              navBarPages[_selectedIndex],
-              Align(alignment: Alignment.bottomCenter, child: navBar),
-            ],
-          ),
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-              children: <Widget>[
-                DrawerHeader(
-                  child: Row(
-                    children: <Widget>[
-                      accIcon,
-                      Text(
-                        '${user.userName}',
-                        style: new TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                    ],
+    return Scaffold(
+      appBar: AppBar(title: Text('')),
+      //add a body
+      body: Stack(
+        children: <Widget>[
+          navBarPages[_selectedIndex],
+          Align(alignment: Alignment.bottomCenter, child: navBar),
+          UserContainer.of(context).state.isRinging
+              ? IncomingCall()
+              : Container(width: 0.0, height: 0.0),
+        ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+          children: <Widget>[
+            DrawerHeader(
+              child: Row(
+                children: <Widget>[
+                  accIcon,
+                  Text(
+                    '${user.userName}',
+                    style: TextStyle(fontSize: 20, color: Colors.white),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                  ),
-                ),
-                ListTile(
-                  title: Text('Log Out'),
-                  onTap: () {
-                    firestoreRunTransaction(-1, 'HelpersOnline');
-                    firestoreUpdateVIP(
-                        user.userName, false, false, 'allHelpers');
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  title: Text('Preferences'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AccSettings()),
-                    );
-                  },
-                ),
-              ],
+                ],
+              ),
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
             ),
-          ),
+            ListTile(
+              title: Text('Log Out'),
+              onTap: () {
+                firestoreRunTransaction(-1, 'HelpersOnline');
+                firestoreUpdateVIP(user.userName, false, false, 'allHelpers');
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('Preferences'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AccSettings()),
+                );
+              },
+            ),
+          ],
         ),
-        UserContainer.of(context).state.isRinging ? IncomingCall() : Text('')
-      ],
+      ),
     );
   }
 }
