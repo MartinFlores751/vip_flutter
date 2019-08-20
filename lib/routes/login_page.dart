@@ -123,8 +123,6 @@ class _LoginPageState extends State<LoginPage> {
               builder: (context) =>
                   UserContainer(user: arg, child: LoggedAccVIP())));
         }
-        await setStatus(Status.offline);
-        client.close();
       }
     } else {
       Fluttertoast.showToast(

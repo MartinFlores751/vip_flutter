@@ -25,7 +25,7 @@ http.Client client;
 // Ruby Server CRUD
 // ----------------
 Future<dynamic> authenticateUser(String username, String password) async {
-  debugPrint("Authenticating user...");
+  debugPrint("Authenticating user $username...");
 
   String unencodedString = username + ':' + password;
   List<int> unencodedAuth = utf8.encode(unencodedString);
@@ -98,7 +98,7 @@ Future<dynamic> getVips() async {
 }
 
 Future<dynamic> setStatus(Status status) async {
-  debugPrint("Setting current user's status...");
+  debugPrint("Setting current user's status to $status...");
 
   Map<String, String> headers = {
     'Accept': 'application/json',
