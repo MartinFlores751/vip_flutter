@@ -361,11 +361,13 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
       },
     );
   }
-  void frostedOff(){
+
+  void frostedOff() {
     setState(() {
-      frosted = false; 
+      frosted = false;
     });
   }
+
   bool frosted = false;
   @override
   Widget build(BuildContext context) {
@@ -402,7 +404,12 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         children: <Widget>[
           _buildSelectedPage,
           Align(alignment: Alignment.bottomCenter, child: _vipNavBar),
-          frosted ? OutgoingCall(frost: frostedOff) : Container(width: 0, height: 0,)
+          frosted
+              ? OutgoingCall(frost: frostedOff)
+              : Container(
+                  width: 0,
+                  height: 0,
+                )
         ],
       ),
       drawer: vipDrawer,
