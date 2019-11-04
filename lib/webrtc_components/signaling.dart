@@ -16,6 +16,17 @@ enum SignalingState {
   ConnectionError,
 }
 
+class Offer {
+  var id;
+  var description;
+  var media;
+  var sessionId;
+
+  Offer({this.id, this.description, this.media, this.sessionId});
+}
+
+Offer lastOffer;
+
 /*
  * callbacks for Signaling API.
  */
@@ -43,9 +54,11 @@ class Signaling {
   DataChannelMessageCallback onDataChannelMessage;
   DataChannelCallback onDtaChannel;
 
+  /// Contains the list of TURN and STUN servers to use when sending data.
   Map<String, dynamic> _iceServers = {
     'iceServers': [
       {'url': 'stun:stun.l.google.com:19302'},
+      {'url': 'stun:stun.stunprotocol.org:3478'},
       /**
        * turn server configuration example.
       {
@@ -57,6 +70,7 @@ class Signaling {
     ]
   };
 
+  // Not sure what this is for...
   final Map<String, dynamic> _config = {
     'mandatory': {},
     'optional': [
@@ -64,6 +78,7 @@ class Signaling {
     ],
   };
 
+  /// Defines constraints for RemoteStreams.
   final Map<String, dynamic> _constraints = {
     'mandatory': {
       'OfferToReceiveAudio': true,
@@ -72,6 +87,7 @@ class Signaling {
     'optional': [],
   };
 
+  /// Defines constraints for DataStreams.
   final Map<String, dynamic> _dc_constraints = {
     'mandatory': {
       'OfferToReceiveAudio': false,
@@ -82,6 +98,7 @@ class Signaling {
 
   Signaling(this._url, this._name);
 
+  /// Closes all open streams and disconnects from signaling server.
   close() {
     if (_localStream != null) {
       _localStream.dispose();
@@ -94,17 +111,24 @@ class Signaling {
     if (_socket != null) _socket.close();
   }
 
+  /// Changes the current camera to another available one.
   void switchCamera() {
     if (_localStream != null) {
       _localStream.getVideoTracks()[0].switchCamera();
     }
   }
 
+  /// Initiates a [media] connection with the specified [peer_id].
+  ///
+  /// Creates a Stream of Media or Data depending on [media].
+  /// If [media] is 'data' then a DataStream is created,
+  /// otherwise a MediaStream in created. [use_screen] specifies
+  /// whether or not to do a screen share.
   void invite(String peer_id, String media, use_screen) {
     this._sessionId = this._selfId + '-' + peer_id;
 
     if (this.onStateChange != null) {
-      this.onStateChange(SignalingState.CallStateNew);
+      this.onStateChange(SignalingState.CallStateInvite);
     }
 
     _createPeerConnection(peer_id, media, use_screen).then((pc) {
@@ -116,6 +140,7 @@ class Signaling {
     });
   }
 
+  /// Ends current call.
   void bye() {
     _send('bye', {
       'session_id': this._sessionId,
@@ -123,11 +148,14 @@ class Signaling {
     });
   }
 
+  /// Handles an incoming message based on the data [message] has.
   void onMessage(message) async {
     Map<String, dynamic> mapData = message;
     var data = mapData['data'];
 
     switch (mapData['type']) {
+
+      /// Updates the list of peers and calls [onPeersUpdate(event)] callback.
       case 'peers':
         {
           List<dynamic> peers = data;
@@ -139,6 +167,8 @@ class Signaling {
           }
         }
         break;
+
+      /// Connects current user to sender of the offer with the type based on [media].
       case 'offer':
         {
           var id = data['from'];
@@ -147,22 +177,27 @@ class Signaling {
           var sessionId = data['session_id'];
           this._sessionId = sessionId;
 
-          if (this.onStateChange != null) {
-            this.onStateChange(SignalingState.CallStateNew);
-          }
+          lastOffer = Offer(
+              id: data['from'],
+              description: data['description'],
+              media: data['media'],
+              sessionId: data['session_id']);
 
-          _createPeerConnection(id, media, false).then((pc) {
-            _peerConnections[id] = pc;
-            pc.setRemoteDescription(new RTCSessionDescription(
-                description['sdp'], description['type']));
-            _createAnswer(id, pc, media);
-          });
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateRinging);
+          }
         }
         break;
+
+      /// Connects to other user after offer is accepted.
       case 'answer':
         {
           var id = data['from'];
           var description = data['description'];
+
+          if (this.onStateChange != null) {
+            this.onStateChange(SignalingState.CallStateNew);
+          }
 
           var pc = _peerConnections[id];
           if (pc != null) {
@@ -171,6 +206,7 @@ class Signaling {
           }
         }
         break;
+      // What is 'candidate' for?
       case 'candidate':
         {
           var id = data['from'];
@@ -248,6 +284,7 @@ class Signaling {
     }
   }
 
+  /// Connects device to RTC signalling server.
   void connect() async {
     try {
       _socket = await WebSocket.connect(_url);
@@ -280,6 +317,8 @@ class Signaling {
     }
   }
 
+  // Creates a new media stream from either the user facing camera,
+  // or the current screen(screen sharing).
   Future<MediaStream> createStream(media, user_screen) async {
     final Map<String, dynamic> mediaConstraints = {
       'audio': true,
@@ -304,6 +343,10 @@ class Signaling {
     return stream;
   }
 
+  // Creates a connection with peer. If media is not data, assume video/audio stream.
+  // This creates a stream to then send off to whatever ICE candidate picks up
+  // the stream first. Also has the callbacks for the addition and removal of
+  // remote streams.
   _createPeerConnection(id, media, user_screen) async {
     if (media != 'data') _localStream = await createStream(media, user_screen);
     RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
@@ -341,6 +384,7 @@ class Signaling {
     return pc;
   }
 
+  // Adds DataChannel if none existing
   _addDataChannel(id, RTCDataChannel channel) {
     channel.onDataChannelState = (e) {};
     channel.onMessage = (data) {
@@ -352,12 +396,15 @@ class Signaling {
     if (this.onDtaChannel != null) this.onDtaChannel(channel);
   }
 
+  // Creates DataChannel
   _createDataChannel(id, RTCPeerConnection pc, {label: 'fileTransfer'}) async {
     RTCDataChannelInit dataChannelDict = new RTCDataChannelInit();
     RTCDataChannel channel = await pc.createDataChannel(label, dataChannelDict);
     _addDataChannel(id, channel);
   }
 
+  // Creates new connection to other device 'offering' media, being either
+  // a DataStream or VideoStream
   _createOffer(String id, RTCPeerConnection pc, String media) async {
     try {
       RTCSessionDescription s = await pc
@@ -394,5 +441,18 @@ class Signaling {
     JsonEncoder encoder = new JsonEncoder();
     if (_socket != null) _socket.add(encoder.convert(data));
     print('send: ' + encoder.convert(data));
+  }
+
+  acceptCall() {
+    if (this.onStateChange != null) {
+      this.onStateChange(SignalingState.CallStateNew);
+    }
+
+    _createPeerConnection(lastOffer.id, lastOffer.media, false).then((pc) {
+      _peerConnections[lastOffer.id] = pc;
+      pc.setRemoteDescription(new RTCSessionDescription(
+          lastOffer.description['sdp'], lastOffer.description['type']));
+      _createAnswer(lastOffer.id, pc, lastOffer.media);
+    });
   }
 }

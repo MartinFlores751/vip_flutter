@@ -11,6 +11,8 @@ import 'package:vip_flutter/routes/sign_up.dart';
 import 'package:vip_flutter/db_crud.dart';
 import 'package:vip_flutter/routes/logged_acc.dart';
 import 'package:vip_flutter/routes/logged_accVIP.dart';
+import 'package:vip_flutter/user_class.dart';
+import 'package:vip_flutter/states/user_state_container.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key}) : super(key: key);
@@ -22,62 +24,67 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  var _username = TextEditingController();
-  var _password = TextEditingController();
+  TextEditingController _username = TextEditingController();
+  TextEditingController _password = TextEditingController();
+  FocusNode _usernameFocus = FocusNode();
+  FocusNode _passwordFocus = FocusNode();
+
   bool isValidating = false;
 
   Widget mainView;
 
   Widget get _usernameField {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-      width: MediaQuery.of(context).size.width / 1.5,
+      margin: EdgeInsets.only(bottom: 10.0),
+      width: MediaQuery.of(context).size.width * 0.75,
       child: TextFormField(
         inputFormatters: [
           new WhitelistingTextInputFormatter(new RegExp("[a-zA-Z0-9]")),
         ],
         controller: _username,
-        autofocus: false,
-        obscureText: false,
+        focusNode: _usernameFocus,
         textInputAction: TextInputAction.next,
         decoration: new InputDecoration(
           border: new OutlineInputBorder(
               borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-              borderSide: new BorderSide(color: Colors.teal)),
+              borderSide: new BorderSide(color: Theme.of(context).accentColor)),
           hintText: 'Username',
           labelText: 'Username',
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Icons.person,
-            color: Colors.blue,
+            color: Theme.of(context).primaryColor,
           ),
-          prefixText: ' ',
         ),
         validator: (value) {
           if (value.length == 0) return 'Please input a valid username!';
         },
+        onEditingComplete: () =>
+            FocusScope.of(context).requestFocus(_passwordFocus),
       ),
     );
   }
 
   Widget get _passwordField {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-      width: MediaQuery.of(context).size.width / 1.5,
+      width: MediaQuery.of(context).size.width * 0.75,
       child: TextFormField(
         inputFormatters: [
           new BlacklistingTextInputFormatter(new RegExp("[ ]")),
         ],
         controller: _password,
+        focusNode: _passwordFocus,
+        textInputAction: TextInputAction.done,
         obscureText: true,
         decoration: new InputDecoration(
             border: new OutlineInputBorder(
                 borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-                borderSide: new BorderSide(color: Colors.teal)),
+                borderSide:
+                    new BorderSide(color: Theme.of(context).accentColor)),
             hintText: '******',
             labelText: 'Password',
-            prefixIcon: const Icon(
-              Icons.enhanced_encryption,
-              color: Colors.blue,
+            prefixIcon: Icon(
+              Icons.lock,
+              color: Theme.of(context).primaryColor,
             ),
             suffixStyle: const TextStyle(color: Colors.green)),
         validator: (value) {
@@ -89,10 +96,10 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget get _loginButton {
     return RaisedButton(
-      elevation: 2,
+      elevation: 4.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Text("Login"),
-      color: Colors.blue[200],
+      color: Theme.of(context).primaryColor,
       onPressed: _validateForm,
     );
   }
@@ -105,13 +112,16 @@ class _LoginPageState extends State<LoginPage> {
       Map<String, dynamic> results =
           await doAuthCRUD(_username.text, _password.text);
       if (results['isSuccess']) {
-        if (results['isHelper']) {
-          List<String> argumentList = [results['token'], _username.text];
-          Navigator.of(context)
-              .pushNamed(LoggedAccVIP.routeName, arguments: argumentList);
+        results['user'].userName = _username.text;
+        User arg = results['user'];
+        if (results['user'].isHelper) {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) =>
+                  UserContainer(user: arg, child: LoggedAcc())));
         } else {
-          Navigator.of(context)
-              .pushNamed(LoggedAcc.routeName, arguments: results['token']);
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) =>
+                  UserContainer(user: arg, child: LoggedAccVIP())));
         }
       }
     } else {
@@ -150,10 +160,12 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget get _logoBox {
     return Container(
+      margin: const EdgeInsets.only(bottom: 7.5),
       decoration: BoxDecoration(
-          color: Colors.blue,
+          color: Theme.of(context).primaryColor,
           shape: BoxShape.circle,
-          border: Border.all(width: 5, color: Colors.black)),
+          border:
+              Border.all(width: 3, color: Theme.of(context).iconTheme.color)),
       child: _logoIcon,
     );
   }
@@ -162,17 +174,14 @@ class _LoginPageState extends State<LoginPage> {
     return Form(
       key: _formKey,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           _logoBox,
-          SizedBox(height: 15),
           Column(
             children: <Widget>[
               _usernameField,
-              SizedBox(
-                height: 10,
-              ),
-              _passwordField
+              _passwordField,
             ],
           ),
           _loginButton,

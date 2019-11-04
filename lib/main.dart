@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart';
 import 'package:vip_flutter/routes/logged_acc.dart';
 import 'package:vip_flutter/routes/logged_accVIP.dart';
 import 'package:vip_flutter/routes/login_page.dart';
+import 'package:vip_flutter/states/user_state_container.dart';
 
 void main() => runApp(MyApp());
 
@@ -25,8 +26,9 @@ class MyApp extends StatelessWidget {
         initialRoute: LoginPage.routeName,
         routes: {
           LoginPage.routeName: (context) => LoginPage(),
-          LoggedAcc.routeName: (context) => LoggedAcc(),
-          LoggedAccVIP.routeName: (context) => LoggedAccVIP()
+          LoggedAcc.routeName: (context) => UserContainer(child: LoggedAcc()),
+          LoggedAccVIP.routeName: (context) =>
+              UserContainer(child: LoggedAccVIP())
         });
   }
 }
