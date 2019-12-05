@@ -17,8 +17,6 @@ import 'package:vip_flutter/user_class.dart';
 import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
 import 'package:circular_bottom_navigation/tab_item.dart';
 
-import 'package:intl/intl.dart';
-
 class LoggedAccVIP extends StatefulWidget {
   static const String routeName = '/vip_home';
   LoggedAccVIP();
@@ -400,12 +398,6 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           break;
       }
     }
-    
-
-    DateTime now = DateTime.now();
-    String formattedDate = DateFormat('kk:mm:ss EEE d MMM').format(now);
-    debugPrint("$formattedDate");
-
 
     // Here's the "actual" app
     // onWillPop is the action taken after pressing the back button
