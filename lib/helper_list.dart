@@ -4,7 +4,8 @@ import 'package:vip_flutter/helper_card.dart';
 
 class HelperList extends StatelessWidget {
   final Map<String, dynamic> helpers;
-  HelperList({this.helpers});
+  final VoidCallback frost;
+  HelperList({this.helpers, this.frost});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,7 @@ class HelperList extends StatelessWidget {
       itemCount: helpers.length,
       itemBuilder: (context, index) {
         String mapKey = helpers.keys.elementAt(index);
-        return HelperCard(username: mapKey, mapValue: helpers[mapKey]);
+        return HelperCard(username: mapKey, mapValue: helpers[mapKey], frost: frost);
       },
     );
   }

@@ -8,7 +8,8 @@ import 'package:vip_flutter/db_crud.dart';
 class HelperCard extends StatefulWidget {
   final String username;
   final dynamic mapValue;
-  HelperCard({this.username, this.mapValue});
+  final VoidCallback frost;
+  HelperCard({this.username, this.mapValue, this.frost});
 
   @override
   _HelperCardState createState() => _HelperCardState();
@@ -53,6 +54,16 @@ class _HelperCardState extends State<HelperCard> {
         color: _buildColor(2));
   }
 
+  Function disableButton(){
+    if (widget.mapValue['online'] && !widget.mapValue['away']){
+      return () {
+        widget.frost();
+        UserContainer.of(context).callUser(widget.username);
+      };
+    }
+    return null;
+  }
+
   // Helper Cards
   Widget get _buildIt {
     var con = Container(
@@ -90,9 +101,7 @@ class _HelperCardState extends State<HelperCard> {
                   iconSize: 75,
                   color: Colors.blue,
                   icon: Icon(Icons.videocam),
-                  onPressed: () {
-                    UserContainer.of(context).callUser(widget.username);
-                  },
+                  onPressed: disableButton(),
                 ),
                 IconButton(
                   iconSize: 75,

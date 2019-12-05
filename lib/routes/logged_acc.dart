@@ -125,6 +125,7 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this); // Remove the observer
+    _navigationController.dispose();
     super.dispose();
   }
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'package:vip_flutter/webrtc_components/random_string.dart';
 
@@ -91,7 +92,7 @@ class Signaling {
   final Map<String, dynamic> _dc_constraints = {
     'mandatory': {
       'OfferToReceiveAudio': false,
-      'OfferToReceiveVideo': false,
+      'OfferToReceiveVideo': true,
     },
     'optional': [],
   };
@@ -126,7 +127,7 @@ class Signaling {
   /// whether or not to do a screen share.
   void invite(String peer_id, String media, use_screen) {
     this._sessionId = this._selfId + '-' + peer_id;
-
+  
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateInvite);
     }
@@ -351,6 +352,7 @@ class Signaling {
     if (media != 'data') _localStream = await createStream(media, user_screen);
     RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
     if (media != 'data') pc.addStream(_localStream);
+    debugPrint(_localStream.toString());
     pc.onIceCandidate = (candidate) {
       _send('candidate', {
         'to': id,

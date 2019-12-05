@@ -17,6 +17,8 @@ import 'package:vip_flutter/user_class.dart';
 import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
 import 'package:circular_bottom_navigation/tab_item.dart';
 
+import 'package:intl/intl.dart';
+
 class LoggedAccVIP extends StatefulWidget {
   static const String routeName = '/vip_home';
   LoggedAccVIP();
@@ -46,6 +48,8 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   void dispose() {
     super.dispose();
     WidgetsBinding.instance.removeObserver(this); // Remove the observer
+    firestoreRunTransaction(-1, 'VipOnline');
+    firestoreUpdateVIP(user.userName, false, false, 'allVip');
     _navigationController.dispose();
   }
 
@@ -67,7 +71,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           _lastLifecycleState == AppLifecycleState.inactive) {
         debugPrint("Going Away");
 
-        setStatus(Status.away);
+        await setStatus(Status.away);
 
         // Firestore stuff...
         firestoreUpdateVIP(user.userName, true, true, 'allVip');
@@ -85,7 +89,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
       } else {
         print("Resuming");
 
-        setStatus(Status.online);
+        await setStatus(Status.online);
 
         // Firebase call
         firestoreUpdateVIP(user.userName, false, true, 'allVip');
@@ -107,7 +111,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           _lastLifecycleState == AppLifecycleState.inactive) {
         print("Logging Out");
 
-        setStatus(Status.offline);
+        await setStatus(Status.offline);
 
         // Firebase
         firestoreRunTransaction(-1, 'VipOnline');
@@ -131,7 +135,6 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         _checkPaused(i + 1);
       } else {
         print("Resuming");
-
         firestoreUpdateVIP(user.userName, false, true, 'allVip');
 
         Map<String, String> body = {
@@ -154,7 +157,7 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
   Widget get _lookForHelpers {
     return Scaffold(
       appBar: null,
-      body: streamForHelpersOnline(),
+      body: streamForHelpersOnline(frostedOn),
     );
   }
 
@@ -305,9 +308,6 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           ListTile(
             title: Text('Log Out'),
             onTap: () {
-              firestoreRunTransaction(-1, 'VipOnline');
-              firestoreUpdateVIP(user.userName, false, false, 'allVip');
-
               Navigator.pop(context);
               Navigator.pop(context);
             },
@@ -362,13 +362,17 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
     );
   }
 
-  void frostedOff() {
+  bool frosted = false;
+  void frostedOff(){
     setState(() {
       frosted = false;
     });
   }
-
-  bool frosted = false;
+  void frostedOn(){
+    setState(() {
+      frosted = true;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     user = UserContainer.of(context).state.currentUser;
@@ -396,23 +400,30 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           break;
       }
     }
+    
+
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('kk:mm:ss EEE d MMM').format(now);
+    debugPrint("$formattedDate");
+
 
     // Here's the "actual" app
-    return Scaffold(
-      appBar: frosted ? null : _vipAppBar,
-      body: Stack(
-        children: <Widget>[
-          _buildSelectedPage,
-          Align(alignment: Alignment.bottomCenter, child: _vipNavBar),
-          frosted
-              ? OutgoingCall(frost: frostedOff)
-              : Container(
-                  width: 0,
-                  height: 0,
-                )
-        ],
+    // onWillPop is the action taken after pressing the back button
+    return WillPopScope(
+      onWillPop: (){
+        Navigator.pop(context);
+      },
+      child: Scaffold(
+        appBar: frosted ? null : _vipAppBar,
+        body: Stack(
+          children: <Widget>[
+            _buildSelectedPage,
+            Align(alignment: Alignment.bottomCenter, child: _vipNavBar),
+            frosted ? OutgoingCall(frost: frostedOff) : Container(width: 0, height: 0,)
+          ],
+        ),
+        drawer: frosted ? null : vipDrawer,
       ),
-      drawer: vipDrawer,
     );
   }
 }

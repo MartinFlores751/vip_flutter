@@ -73,18 +73,18 @@ class OutgoingCall extends StatelessWidget {
           ),
         ),
         Align(
-          alignment: FractionalOffset(.5, .9),
+          alignment: FractionalOffset(.5, .9), 
           child: FloatingActionButton(
-            onPressed: () {
-              debugPrint("Ending call...");
+            onPressed: (){
+              debugPrint("Canceling call...");
               UserContainer.of(context).rejectCall();
-              frost();
+              frost();  //removes frost effect
             },
             tooltip: 'Cancel',
             child: new Icon(Icons.call_end),
             backgroundColor: Colors.red,
           ),
-        ),
+        )
       ],
     );
   }

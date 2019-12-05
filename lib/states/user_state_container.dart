@@ -149,7 +149,7 @@ class _UserContainerState extends State<UserContainer> {
     state.peers?.forEach((peer) {
       Map<String, dynamic> p = peer;
       if (p['name'] == username) {
-        _invitePeer(context, p['id'], false);
+        _invitePeer(context, p['id'], true);
       }
     });
   }
@@ -160,7 +160,7 @@ class _UserContainerState extends State<UserContainer> {
     debugPrint(state.peers.toString());
     Random rnd = Random();
     int peerToCall = rnd.nextInt(state.peers.length);
-    _invitePeer(context, state.peers[peerToCall]['id'], false);
+    _invitePeer(context, state.peers[peerToCall]['id'], true);
   }
 
   acceptCall() {
