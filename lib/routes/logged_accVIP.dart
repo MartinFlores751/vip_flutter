@@ -411,7 +411,10 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
           children: <Widget>[
             _buildSelectedPage,
             Align(alignment: Alignment.bottomCenter, child: _vipNavBar),
-            frosted ? OutgoingCall(frost: frostedOff) : Container(width: 0, height: 0,)
+            frosted ? OutgoingCall(frost: frostedOff) : Container(width: 0, height: 0,),
+            /*UserContainer.of(context).state.isRinging
+              ? IncomingCall()
+              : Container(width: 0.0, height: 0.0),*/
           ],
         ),
         drawer: frosted ? null : vipDrawer,

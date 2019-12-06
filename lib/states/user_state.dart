@@ -1,3 +1,4 @@
+import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'package:vip_flutter/user_class.dart';
 import 'package:vip_flutter/webrtc_components/signaling.dart';
@@ -12,6 +13,8 @@ class UserState {
   List<dynamic> peers;
   RTCVideoRenderer localRenderer; //Use Webrtc
   RTCVideoRenderer remoteRenderer; //Use Webrtc
+  AudioCache audioPlayer = AudioCache();
+
 
   UserState(
       {this.currentUser,

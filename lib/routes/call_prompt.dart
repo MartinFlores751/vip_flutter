@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
 import 'package:vip_flutter/states/user_state_container.dart';
@@ -7,6 +8,15 @@ import 'package:vip_flutter/states/user_state_container.dart';
 class IncomingCall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    AudioPlayer realPlayer;
+    playLocal() async {
+      //await audioPlayer.setUrl(); // prepare the player with this audio but do not start playing
+      realPlayer = await UserContainer.of(context).state.audioPlayer.loop('callsound.mp3');
+    }
+    playStop() async{
+      await realPlayer.stop();
+    }
+    playLocal();
     return Stack(
       children: <Widget>[
         BackdropFilter(
@@ -29,6 +39,7 @@ class IncomingCall extends StatelessWidget {
               FloatingActionButton(
                 onPressed: () {
                   debugPrint("Acccepting call!");
+                  playStop();
                   UserContainer.of(context).acceptCall();
                 },
                 tooltip: 'Accept',
@@ -38,6 +49,7 @@ class IncomingCall extends StatelessWidget {
               FloatingActionButton(
                 onPressed: () {
                   debugPrint("Ending call...");
+                  playStop();
                   UserContainer.of(context).rejectCall();
                 },
                 tooltip: 'Cancel',
@@ -56,8 +68,19 @@ class OutgoingCall extends StatelessWidget {
   final VoidCallback frost;
   const OutgoingCall({Key key, this.frost}) : super(key: key);
 
+  
+
   @override
   Widget build(BuildContext context) {
+    AudioPlayer realPlayer;
+    playLocal() async {
+      //await audioPlayer.setUrl(); // prepare the player with this audio but do not start playing
+      realPlayer = await UserContainer.of(context).state.audioPlayer.loop('callsound.mp3');
+    }
+    playStop() async{
+      await realPlayer.stop();
+    }
+    playLocal();
     return Stack(
       children: <Widget>[
         BackdropFilter(
@@ -77,6 +100,7 @@ class OutgoingCall extends StatelessWidget {
           child: FloatingActionButton(
             onPressed: (){
               debugPrint("Canceling call...");
+              playStop();
               UserContainer.of(context).rejectCall();
               frost();  //removes frost effect
             },

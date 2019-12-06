@@ -62,6 +62,12 @@ build/
 **/ios/Flutter/flutter_assets/
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
+android/.project
+android/.settings/
+android/app/.classpath
+android/app/.project
+android/app/.settings/
+ios/Flutter/flutter_export_environment.sh
 
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
