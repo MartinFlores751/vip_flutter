@@ -16,7 +16,7 @@ class IncomingCall extends StatelessWidget {
     playStop() async{
       await realPlayer.stop();
     }
-    playLocal();
+    //playLocal();
     return Stack(
       children: <Widget>[
         BackdropFilter(
@@ -39,7 +39,7 @@ class IncomingCall extends StatelessWidget {
               FloatingActionButton(
                 onPressed: () {
                   debugPrint("Acccepting call!");
-                  playStop();
+                //  playStop();
                   UserContainer.of(context).acceptCall();
                 },
                 tooltip: 'Accept',
@@ -80,7 +80,7 @@ class OutgoingCall extends StatelessWidget {
     playStop() async{
       await realPlayer.stop();
     }
-    playLocal();
+    //playLocal();
     return Stack(
       children: <Widget>[
         BackdropFilter(
@@ -100,7 +100,7 @@ class OutgoingCall extends StatelessWidget {
           child: FloatingActionButton(
             onPressed: (){
               debugPrint("Canceling call...");
-              playStop();
+             //3 playStop();
               UserContainer.of(context).rejectCall();
               frost();  //removes frost effect
             },

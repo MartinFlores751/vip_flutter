@@ -102,7 +102,7 @@ class _UserContainerState extends State<UserContainer> {
             debugPrint('Incomming call...');
             if (!state.currentUser.isHelper) {
               // automagically accept if user is VIP
-              state.signaling.acceptCall(state.currentUser.isHelper);
+              state.signaling.acceptCall(!state.currentUser.isHelper);
             }
             setState(() => state.isRinging = true);
             break;
