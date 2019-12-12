@@ -53,10 +53,27 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Do we really need to change the state?
-    setState(() {
-      _lastLifecycleState = state;
-    });
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.inactive:
+        firestoreUpdateVIP(user.userName, true, true, 'allVip');
+        setStatus(Status.away);
+        break;
+      case AppLifecycleState.resumed:
+        firestoreRunTransaction(1, 'HelpersOnline');
+        firestoreUpdateVIP(user.userName, false, true, 'allVip');
+        setStatus(Status.online);
+        break;
+      case AppLifecycleState.paused:
+        firestoreRunTransaction(-1, 'HelpersOnline');
+        firestoreUpdateVIP(user.userName, true, true, 'allVip');
+        setStatus(Status.away);
+        break;
+      case AppLifecycleState.detached:
+        firestoreUpdateVIP(user.userName, false, false, 'allVip');
+        setStatus(Status.offline);
+        break;
+    }
   }
 
   // This is a recursive function that is supposed to count up to 150 before logging the user off...
@@ -371,35 +388,10 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
       frosted = true;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     user = UserContainer.of(context).state.currentUser;
-
-    // Put this into a seperate function that'll handle states better
-    if (_lastLifecycleState != null) {
-      switch (_lastLifecycleState) {
-        case AppLifecycleState.resumed:
-          debugPrint("Resumed"); //App Resumed
-          break;
-        case AppLifecycleState.inactive:
-          debugPrint("Inactive");
-          _checkPaused(0); //THIS ONE OR
-          break;
-        case AppLifecycleState.paused:
-          debugPrint("Paused");
-          _checkPaused(0); //THIS ONE
-          break;
-        case AppLifecycleState.suspending:
-          debugPrint("Logging out");
-          setStatus(Status.offline);
-          break;
-        default:
-          debugPrint("Don't care");
-          break;
-      }
-    }
-
-    // Here's the "actual" app
     // onWillPop is the action taken after pressing the back button
     return WillPopScope(
       onWillPop: (){

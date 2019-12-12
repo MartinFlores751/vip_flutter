@@ -142,14 +142,14 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
         firestoreUpdateVIP(user.userName, false, true, 'allHelpers');
         setStatus(Status.online);
         break;
-      case AppLifecycleState.suspending:
-        firestoreUpdateVIP(user.userName, false, false, 'allHelpers');
-        setStatus(Status.offline);
-        break;
       case AppLifecycleState.paused:
         firestoreRunTransaction(-1, 'HelpersOnline');
         firestoreUpdateVIP(user.userName, true, true, 'allHelpers');
         setStatus(Status.away);
+        break;
+      case AppLifecycleState.detached:
+        firestoreUpdateVIP(user.userName, false, false, 'allHelpers');
+        setStatus(Status.offline);
         break;
     }
   }
