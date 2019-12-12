@@ -170,12 +170,13 @@ Future<dynamic> addFavorite(String username) async {
   Map<String, String> body = {'UUID': await udid, 'username': username};
 
   // For some reason, client.post is not working here...
+  debugPrint(jsonEncode(body));
   http.Response response =
-      await http.post(target, body: body, headers: headers);
+      await http.post(target, body: jsonEncode(body), headers: headers);
 
   if (response.headers['set-cookie'] != null)
     cookie = response.headers['set-cookie'];
-
+  debugPrint(response.body);
   Map<String, dynamic> responseList = jsonDecode(response.body);
   return responseList;
 }

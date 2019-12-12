@@ -25,11 +25,25 @@ void firestoreUpdateVIP(String userName, bool away, bool online, String vipOrHel
 //function that adds or subtracts to the total online if someone logs in or logs out
 //vipOrHelper should be either 'VipOnline' or 'HelpersOnline'
 void firestoreRunTransaction(int addOrSub, String vipOrHelper) {
-  final DocumentReference postRef =
-      Firestore.instance.collection("Users").document('OnlineCount');
-  Firestore.instance.runTransaction((Transaction tx) async {
+  debugPrint("STARTING----------------: $addOrSub");
+  final DocumentReference postRef = Firestore.instance.collection('Users').document('OnlineCount');
+  var updateStuff = (val){
+    debugPrint(val['vipOrHelper']);
+    Map<String, int> bodyCha = {
+      "$vipOrHelper": val['$vipOrHelper'] + addOrSub,
+      "TotalOnline": val['TotalOnline'] + addOrSub,
+    };
+    //debugPrint(bodyCha.toString());
+    postRef.updateData(bodyCha);
+  };
+  postRef.snapshots().elementAt(0).then((onValue) => {
+    updateStuff(onValue)
+  });
+  /*Firestore.instance.runTransaction((tx) async {
+    debugPrint("THIS IS THE SECOND STEP");
     DocumentSnapshot postSnapshot = await tx.get(postRef);
     if (postSnapshot.exists) {
+      debugPrint("IT EXISTS");
       await tx.update(postRef, <String, dynamic>{
         'TotalOnline': postSnapshot.data['TotalOnline'] + addOrSub
       });
@@ -37,7 +51,7 @@ void firestoreRunTransaction(int addOrSub, String vipOrHelper) {
         vipOrHelper: postSnapshot.data[vipOrHelper] + addOrSub
       });
     }
-  });
+  });*/
 }
 
 //whoToChange has to be 1 of 3: 'HelpersOnline', 'VipOnline', or 'TotalOnline'
