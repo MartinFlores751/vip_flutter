@@ -55,12 +55,12 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         setStatus(Status.away);
         break;
       case AppLifecycleState.resumed:
-        firestoreRunTransaction(1, 'HelpersOnline');
+        firestoreRunTransaction(1, 'VipOnline');
         firestoreUpdateVIP(user.userName, false, true, 'allVip');
         setStatus(Status.online);
         break;
       case AppLifecycleState.paused:
-        firestoreRunTransaction(-1, 'HelpersOnline');
+        firestoreRunTransaction(-1, 'VipOnline');
         firestoreUpdateVIP(user.userName, true, true, 'allVip');
         setStatus(Status.away);
         break;

@@ -35,28 +35,34 @@ class _LoginStatisticsState extends State<LoginStatistics>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          StatsCard(
+          StatsCardCustom(
             title: "Total Online",
             titleColor: Colors.blue,
             callBack: beginOne,
             whoToShow: 'TotalOnline',
+            width: MediaQuery.of(context).size.width*(0.9),
+            height: MediaQuery.of(context).size.height*(0.225),
           ),
           spaceFormat,
           animateLogCardOne
-              ? StatsCard(
+              ? StatsCardCustom(
                   title: "VIP Online",
                   titleColor: Colors.redAccent,
                   callBack: beginTwo,
                   whoToShow: 'VipOnline',
+                  width: MediaQuery.of(context).size.width*(0.9),
+                  height: MediaQuery.of(context).size.height*(0.225),
                 )
               : Container(height: MediaQuery.of(context).size.height * .23),
           spaceFormat,
           animateLogCardTwo
-              ? StatsCard(
+              ? StatsCardCustom(
                   title: "Helpers Online",
                   titleColor: Colors.green,
                   callBack: () {},
                   whoToShow: 'HelpersOnline',
+                  width: MediaQuery.of(context).size.width*(0.9),
+                  height: MediaQuery.of(context).size.height*(0.225),
                 )
               : Container(height: MediaQuery.of(context).size.height * .23),
           const SizedBox(height: 50),
