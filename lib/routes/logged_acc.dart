@@ -165,8 +165,6 @@ class _LoggedAccState extends State<LoggedAcc> with WidgetsBindingObserver {
     });
   }
 
-  Widget get _drawer {}
-
   @override
   Widget build(BuildContext context) {
     user = UserContainer.of(context).state.currentUser;

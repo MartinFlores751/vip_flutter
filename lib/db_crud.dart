@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter_udid/flutter_udid.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:vip_flutter/user_class.dart';
 import 'package:vip_flutter/firestore_stuff.dart';

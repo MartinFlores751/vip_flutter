@@ -117,7 +117,7 @@ Widget streamForVIPsOnline() {
 }
 
 //signUpWho should be either 'allHelpers' or 'allVip'
-Widget signUpUserFirebase(String userName, String signUpWho) {
+void signUpUserFirebase(String userName, String signUpWho) {
   Map<String, dynamic> body = {
     "$userName": {
       "away": false,
