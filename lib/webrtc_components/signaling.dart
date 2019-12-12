@@ -445,12 +445,12 @@ class Signaling {
     print('send: ' + encoder.convert(data));
   }
 
-  acceptCall() {
+  acceptCall(bool isHelper) {
     if (this.onStateChange != null) {
       this.onStateChange(SignalingState.CallStateNew);
     }
 
-    _createPeerConnection(lastOffer.id, lastOffer.media, false).then((pc) {
+    _createPeerConnection(lastOffer.id, lastOffer.media, isHelper).then((pc) {
       _peerConnections[lastOffer.id] = pc;
       pc.setRemoteDescription(new RTCSessionDescription(
           lastOffer.description['sdp'], lastOffer.description['type']));

@@ -102,7 +102,7 @@ class _UserContainerState extends State<UserContainer> {
             debugPrint('Incomming call...');
             if (!state.currentUser.isHelper) {
               // automagically accept if user is VIP
-              state.signaling.acceptCall();
+              state.signaling.acceptCall(state.currentUser.isHelper);
             }
             setState(() => state.isRinging = true);
             break;
@@ -149,7 +149,7 @@ class _UserContainerState extends State<UserContainer> {
     state.peers?.forEach((peer) {
       Map<String, dynamic> p = peer;
       if (p['name'] == username) {
-        _invitePeer(context, p['id'], true);
+        _invitePeer(context, p['id'], !state.currentUser.isHelper);
       }
     });
   }
@@ -165,7 +165,7 @@ class _UserContainerState extends State<UserContainer> {
 
   acceptCall() {
     debugPrint('Accepting the call!');
-    state.signaling.acceptCall();
+    state.signaling.acceptCall(!state.currentUser.isHelper);
     setState(() => state.isRinging = false);
   }
 
@@ -198,7 +198,7 @@ class _UserContainerState extends State<UserContainer> {
 
     // This only works if on the main page!!!
     if (state.inCalling)
-      toBuild = ConversationPage();
+      toBuild = ConversationPage(isHelper: widget.user.isHelper);
     else
       toBuild = widget.child;
 
