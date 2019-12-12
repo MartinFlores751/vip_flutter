@@ -62,11 +62,14 @@ build/
 **/ios/Flutter/flutter_assets/
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
+<<<<<<< HEAD
 android/.project
 android/.settings/
 android/app/.classpath
 android/app/.project
 android/app/.settings/
+=======
+>>>>>>> alvaro-devel
 ios/Flutter/flutter_export_environment.sh
 
 # Exceptions to above rules.
