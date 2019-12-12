@@ -125,7 +125,7 @@ class _SignUpState extends State<SignUp> {
             prefixIcon: Icon(Icons.face, color: Theme.of(context).primaryColor),
           ),
           validator: (value) {
-            if (value.length == 0) return 'Please input your full name.';
+            return (value.length == 0) ? 'Please input your full name.' : null;
           },
           onEditingComplete: () =>
               FocusScope.of(context).requestFocus(_userNameNode),
@@ -153,7 +153,7 @@ class _SignUpState extends State<SignUp> {
                 Icon(Icons.person, color: Theme.of(context).primaryColor),
           ),
           validator: (value) {
-            if (value.length == 0) return 'Please input a username.';
+            return (value.length == 0) ? 'Please input a username.' : null;
           },
           onEditingComplete: () =>
               FocusScope.of(context).requestFocus(_passwordNode),
@@ -181,7 +181,7 @@ class _SignUpState extends State<SignUp> {
             prefixIcon: Icon(Icons.lock, color: Theme.of(context).primaryColor),
           ),
           validator: (value) {
-            if (value.length == 0) return 'Please input a password.';
+            return (value.length == 0) ? 'Please input a password.' : null;
           },
           onEditingComplete: () =>
               FocusScope.of(context).requestFocus(_conPassNode)),
@@ -213,6 +213,7 @@ class _SignUpState extends State<SignUp> {
             if (value.length == 0)
               return 'Please confirm your password.';
             else if (value != _password.text) return 'Passwords do not match!';
+            else return null;
           }),
     );
   }

@@ -39,8 +39,11 @@ class IncomingCall extends StatelessWidget {
               FloatingActionButton(
                 onPressed: () {
                   debugPrint("Acccepting call!");
-                  playStop();
-                  UserContainer.of(context).acceptCall();
+                  playStop().then((something) => {
+                    UserContainer.of(context).rejectCall()
+                  });
+                  //playStop();
+                  //UserContainer.of(context).acceptCall();
                 },
                 tooltip: 'Accept',
                 child: new Icon(Icons.phone),
@@ -49,8 +52,10 @@ class IncomingCall extends StatelessWidget {
               FloatingActionButton(
                 onPressed: () {
                   debugPrint("Ending call...");
-                  playStop();
-                  UserContainer.of(context).rejectCall();
+                  playStop().then((something) => {
+                    UserContainer.of(context).rejectCall()
+                  });
+                  //UserContainer.of(context).rejectCall();
                 },
                 tooltip: 'Cancel',
                 child: new Icon(Icons.call_end),
@@ -100,8 +105,11 @@ class OutgoingCall extends StatelessWidget {
           child: FloatingActionButton(
             onPressed: (){
               debugPrint("Canceling call...");
-              playStop();
-              UserContainer.of(context).rejectCall();
+              playStop().then((something) => {
+                UserContainer.of(context).rejectCall()
+              });
+              //playStop();
+              //UserContainer.of(context).rejectCall();
               frost();  //removes frost effect
             },
             tooltip: 'Cancel',

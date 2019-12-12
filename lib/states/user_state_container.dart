@@ -16,9 +16,7 @@ class UserContainer extends StatefulWidget {
   UserContainer({this.state, this.user, @required this.child});
 
   static _UserContainerState of(BuildContext context) {
-    return (context.inheritFromWidgetOfExactType(_InheritedStateContainer)
-            as _InheritedStateContainer)
-        .data;
+    return context.dependOnInheritedWidgetOfExactType<_InheritedStateContainer>().data;
   }
 
   @override

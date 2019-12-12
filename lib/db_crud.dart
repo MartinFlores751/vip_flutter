@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter_udid/flutter_udid.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:vip_flutter/user_class.dart';
 import 'package:vip_flutter/firestore_stuff.dart';
@@ -171,12 +170,13 @@ Future<dynamic> addFavorite(String username) async {
   Map<String, String> body = {'UUID': await udid, 'username': username};
 
   // For some reason, client.post is not working here...
+  debugPrint(jsonEncode(body));
   http.Response response =
-      await http.post(target, body: body, headers: headers);
+      await http.post(target, body: jsonEncode(body), headers: headers);
 
   if (response.headers['set-cookie'] != null)
     cookie = response.headers['set-cookie'];
-
+  debugPrint(response.body);
   Map<String, dynamic> responseList = jsonDecode(response.body);
   return responseList;
 }

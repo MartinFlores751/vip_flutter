@@ -1,11 +1,9 @@
-import 'dart:async';
-import 'dart:io';
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import 'package:http/http.dart' as http;
 import 'package:vip_flutter/firestore_stuff.dart';
 import 'package:vip_flutter/routes/call_prompt.dart';
 
@@ -28,9 +26,6 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
     with WidgetsBindingObserver {
   User user;
   int _selectedIndex = 0;
-
-  // Life cycle for the current widget.
-  AppLifecycleState _lastLifecycleState;
 
   // ------------
   // Widget Stuff
@@ -60,12 +55,12 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         setStatus(Status.away);
         break;
       case AppLifecycleState.resumed:
-        firestoreRunTransaction(1, 'HelpersOnline');
+        firestoreRunTransaction(1, 'VipOnline');
         firestoreUpdateVIP(user.userName, false, true, 'allVip');
         setStatus(Status.online);
         break;
       case AppLifecycleState.paused:
-        firestoreRunTransaction(-1, 'HelpersOnline');
+        firestoreRunTransaction(-1, 'VipOnline');
         firestoreUpdateVIP(user.userName, true, true, 'allVip');
         setStatus(Status.away);
         break;
@@ -73,92 +68,6 @@ class _LoggedAccVIPState extends State<LoggedAccVIP>
         firestoreUpdateVIP(user.userName, false, false, 'allVip');
         setStatus(Status.offline);
         break;
-    }
-  }
-
-  // This is a recursive function that is supposed to count up to 150 before logging the user off...
-  // This will get some major refactoring
-  void _checkPaused(int i) async {
-    // What is i supposed to be?
-    if (i == 5) {
-      // Going away when phone powered off
-      if (_lastLifecycleState == AppLifecycleState.paused ||
-          _lastLifecycleState == AppLifecycleState.inactive) {
-        debugPrint("Going Away");
-
-        await setStatus(Status.away);
-
-        // Firestore stuff...
-        firestoreUpdateVIP(user.userName, true, true, 'allVip');
-
-        Map<String, String> body = {
-          "status": '1',
-        };
-
-        // Personal Server Stuff...
-        var url = serverURL + "/set_status";
-        await http.post(url, body: body);
-
-        // Recursive call
-        _checkPaused(i + 1);
-      } else {
-        print("Resuming");
-
-        await setStatus(Status.online);
-
-        // Firebase call
-        firestoreUpdateVIP(user.userName, false, true, 'allVip');
-
-        Map<String, String> body = {
-          "status": '0',
-        };
-
-        // Call to personal server...
-        var url = serverURL + "/set_status";
-        await http.post(url, body: body);
-        return;
-      }
-    }
-    // When the count gets up to 150...
-    else if (i == 150) {
-      // When 150 'ticks' have passed, loggout if still inactive...
-      if (_lastLifecycleState == AppLifecycleState.paused ||
-          _lastLifecycleState == AppLifecycleState.inactive) {
-        print("Logging Out");
-
-        await setStatus(Status.offline);
-
-        // Firebase
-        firestoreRunTransaction(-1, 'VipOnline');
-        firestoreUpdateVIP(user.userName, false, false, 'allVip');
-
-        // Personal Server
-        Map<String, String> body = {
-          "status": '2',
-        };
-        var url = serverURL + "/set_status";
-        await http.post(url, body: body);
-      }
-      // Exit regardless?
-      exit(0); // Does this cause the application to shutdown?
-    } else {
-      // Wait for 2 seconds
-      await Future.delayed(Duration(seconds: 2));
-
-      if (_lastLifecycleState == AppLifecycleState.paused ||
-          _lastLifecycleState == AppLifecycleState.inactive) {
-        _checkPaused(i + 1);
-      } else {
-        print("Resuming");
-        firestoreUpdateVIP(user.userName, false, true, 'allVip');
-
-        Map<String, String> body = {
-          "status": '0',
-        };
-        var url = serverURL + "/set_status";
-        await http.post(url, body: body);
-        return;
-      }
     }
   }
 

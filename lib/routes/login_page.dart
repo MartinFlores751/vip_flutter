@@ -56,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
         validator: (value) {
-          if (value.length == 0) return 'Please input a valid username!';
+          return (value.length == 0) ? 'Please input a valid username!' : null;
         },
         onEditingComplete: () =>
             FocusScope.of(context).requestFocus(_passwordFocus),
@@ -88,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             suffixStyle: const TextStyle(color: Colors.green)),
         validator: (value) {
-          if (value.length == 0) return 'Please input a valid password!';
+          return (value.length == 0) ? 'Please input a valid password!' : null;
         },
       ),
     );
